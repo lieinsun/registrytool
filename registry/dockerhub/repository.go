@@ -1,62 +1,54 @@
 package dockerhub
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 
-	"remotescan-pkg/registry"
+	"github.com/docker/docker/api/types"
+	"github.com/lie-inthesun/remotescan/registry"
 )
 
-// GetImageDetail 查询指定tag的镜像详情
-func (c *Client) GetImageDetail(ctx context.Context, account, image, tag string) (registry.Image, error) {
-	if account == "" {
-		account = c.username
-	}
-	if tag == "" {
-		tag = "latest"
-	}
-	repoPath, err := referencePath(account, image)
-	if err != nil {
-		return nil, err
-	}
+func (c Client) Login(ctx context.Context) (string, error) {
+	data, _ := json.Marshal(types.AuthConfig{
+		Username: c.username,
+		Password: c.password,
+	})
+	body := bytes.NewBuffer(data)
 
-	u := c.url
-	u.Path = fmt.Sprintf(ImageDetailURL, repoPath, tag)
-	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	// 不可以用URL.String() 转义字符会导致404
+	u := fmt.Sprintf("%s://%s%s", c.url.Scheme, c.url.Host, LoginURL)
+	req, err := http.NewRequestWithContext(ctx, "POST", u, body)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
+	q := url.Values{}
+	q.Add("refresh_token", fmt.Sprintf("%v", true))
+	c.url.RawQuery = q.Encode()
 
 	resp, err := c.doRequest(req)
 	if err != nil {
-		return nil, err
-	}
-	var detailResp imageDetailResp
-	if err = json.Unmarshal(resp, &detailResp); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	i := Image{
-		Auth: registry.Auth{
-			UserName: c.username,
-			Password: c.password,
-			Token:    c.token,
-		},
-		Account:     account,
-		Name:        image,
-		Tag:         tag,
-		Size:        detailResp.FullSize,
-		LastUpdated: detailResp.LastUpdated.Unix(),
+	tokenResp := tokenResponse{}
+	if err = json.Unmarshal(resp, &tokenResp); err != nil {
+		return "", err
 	}
-	if len(detailResp.Images) > 0 {
-		img := detailResp.Images[0]
-		i.Digest = img.Digest
-		i.Size = img.Size
-		i.Os = img.Os
-	}
-	return &i, nil
+	return tokenResp.Token, nil
+}
+
+func (c Client) AccountOrProject(account string) registry.ProjectCli {
+	c.account = account
+	return c
+}
+
+func (c Client) Image(image string) registry.ImageCli {
+	c.image = image
+	return c
 }
 
 // GetRepositories 查询镜像tag列表

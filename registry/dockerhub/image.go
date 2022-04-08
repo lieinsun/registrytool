@@ -1,11 +1,13 @@
 package dockerhub
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/aquasecurity/fanal/types"
-
-	"remotescan-pkg/registry"
+	"github.com/lie-inthesun/remotescan/registry"
 )
 
 type Image struct {
@@ -17,6 +19,55 @@ type Image struct {
 	Size        int
 	Os          string
 	LastUpdated int64
+}
+
+func (c Client) Detail(ctx context.Context, tag string) (registry.Image, error) {
+	c.tag = tag
+	if c.account == "" {
+		c.account = c.username
+	}
+	if tag == "" {
+		tag = "latest"
+	}
+	repoPath, err := referencePath(c.account, c.image)
+	if err != nil {
+		return nil, err
+	}
+
+	c.url.Path = fmt.Sprintf(ImageDetailURL, repoPath, tag)
+	req, err := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	var detailResp imageDetailResp
+	if err = json.Unmarshal(resp, &detailResp); err != nil {
+		return nil, err
+	}
+
+	i := Image{
+		Auth: registry.Auth{
+			UserName: c.username,
+			Password: c.password,
+			Token:    c.token,
+		},
+		Account:     c.account,
+		Name:        c.image,
+		Tag:         tag,
+		Size:        detailResp.FullSize,
+		LastUpdated: detailResp.LastUpdated.Unix(),
+	}
+	if len(detailResp.Images) > 0 {
+		img := detailResp.Images[0]
+		i.Digest = img.Digest
+		i.Size = img.Size
+		i.Os = img.Os
+	}
+	return &i, nil
 }
 
 func (i *Image) TrivyReference() (string, types.DockerOption) {

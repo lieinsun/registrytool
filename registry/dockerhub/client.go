@@ -32,6 +32,13 @@ type Client struct {
 	username string
 	password string
 	token    string
+	query
+}
+
+type query struct {
+	account string
+	image   string
+	tag     string
 }
 
 func NewClient(opts ...Option) *Client {
@@ -117,6 +124,7 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	return buf, nil
 }
 
+// extractError 解析dockerhub特定格式的错误信息
 func extractError(buf []byte, resp *http.Response) (bool, error) {
 	var responseBody map[string]string
 	if err := json.Unmarshal(buf, &responseBody); err == nil {

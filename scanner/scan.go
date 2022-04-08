@@ -10,8 +10,7 @@ import (
 	"github.com/aquasecurity/fanal/image"
 	trivyScanner "github.com/aquasecurity/trivy/pkg/scanner"
 	"github.com/aquasecurity/trivy/pkg/types"
-
-	"remotescan-pkg/registry"
+	"github.com/lie-inthesun/remotescan/registry"
 )
 
 func (t *Trivy) newScanner(ctx context.Context, img registry.Image) (*trivyScanner.Scanner, func(), error) {

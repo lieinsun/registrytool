@@ -1,13 +1,13 @@
 package harbor
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -21,6 +21,13 @@ type Client struct {
 	username string
 	password string
 	token    string
+	query
+}
+
+type query struct {
+	project string
+	image   string
+	tag     string
 }
 
 func NewClient(opts ...Option) *Client {

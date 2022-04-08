@@ -2,49 +2,42 @@ package harbor
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 
-	"remotescan-pkg/registry"
+	"github.com/lie-inthesun/remotescan/registry"
 )
 
-// GetImageDetail 查询指定tag的镜像详情
-// tagOrDigest 镜像tag或者sha256 digest
-func (c *Client) GetImageDetail(ctx context.Context, project, image, tagOrDigest string) (registry.Image, error) {
+// Login harbor使用Basic token
+func (c *Client) Login(ctx context.Context) (string, error) {
+	c.token = base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", c.username, c.password)))
+	// 使用ping 检查token是否有效
+	err := c.ping(ctx)
+	if err != nil {
+		c.token = ""
+		return "", err
+	}
+	return c.token, nil
+}
+
+// Ping 使用查询当前登录用户的方法验证登录
+func (c *Client) ping(ctx context.Context) error {
 	u := c.url
-	u.Path = fmt.Sprintf(ImageDetailURL, project, image, tagOrDigest)
+	u.Path = CurrentUserURL
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := c.doRequest(req)
+	_, err = c.doRequest(req)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	var detailResp imageDetailResp
-	if err = json.Unmarshal(resp, &detailResp); err != nil {
-		return nil, err
-	}
+	return nil
+}
 
-	i := Image{
-		Auth: registry.Auth{
-			Url:      c.url.Host,
-			UserName: c.username,
-			Password: c.password,
-			Token:    c.token,
-		},
-		Project:  project,
-		Name:     image,
-		Digest:   detailResp.Digest,
-		Size:     detailResp.Size,
-		Os:       detailResp.ExtraAttrs.Os,
-		PushTime: detailResp.PushTime.Unix(),
-	}
-	if len(detailResp.Tags) > 0 {
-		tag := detailResp.Tags[0]
-		i.Tag = tag.Name
-	}
-	return &i, nil
+func (c Client) AccountOrProject(project string) registry.ProjectCli {
+	c.project = project
+	return c
 }
