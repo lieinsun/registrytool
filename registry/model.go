@@ -8,12 +8,12 @@ type Auth struct {
 }
 
 type Project struct {
-	Name         string            `json:"name"`
-	Metadata     map[string]string `json:"metadata"`
-	OwnerName    string            `json:"owner_name"`
-	RepoCount    int               `json:"repo_count"`
-	CreationTime int64             `json:"creation_time"`
-	UpdatedTime  int64             `json:"updated_time"`
+	Name        string            `json:"name"`
+	Metadata    map[string]string `json:"metadata"`
+	OwnerName   string            `json:"owner_name"`
+	RepoCount   int               `json:"repo_count"`
+	CreatedTime int64             `json:"creation_time"`
+	UpdatedTime int64             `json:"updated_time"`
 }
 
 type Repository struct {

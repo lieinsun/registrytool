@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 
+	"github.com/golang/glog"
 	"github.com/lie-inthesun/remotescan/registry"
 )
 
@@ -32,15 +34,17 @@ func (c *Client) ping(ctx context.Context) error {
 		return err
 	}
 
-	_, err = c.doRequest(req)
+	_, _, err = c.doRequest(req)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c Client) AccountOrProject(project string) registry.ProjectCli {
-	c.project = project
+func (c Client) ProjectClient(project ...string) registry.ProjectCli {
+	if len(project) > 0 {
+		c.project = project[0]
+	}
 	return c
 }
 
@@ -52,7 +56,7 @@ func (c Client) ListProjects(ctx context.Context, params url.Values) ([]registry
 		return nil, 0, err
 	}
 
-	resp, err := c.doRequest(req)
+	resp, header, err := c.doRequest(req)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -64,16 +68,19 @@ func (c Client) ListProjects(ctx context.Context, params url.Values) ([]registry
 	list := make([]registry.Project, 0, len(projectsResp))
 	for _, p := range projectsResp {
 		project := registry.Project{
-			Name:         p.Name,
-			Metadata:     p.Metadata,
-			OwnerName:    p.OwnerName,
-			RepoCount:    p.RepoCount,
-			CreationTime: p.CreationTime.Unix(),
-			UpdatedTime:  p.UpdateTime.Unix(),
+			Name:        p.Name,
+			Metadata:    p.Metadata,
+			OwnerName:   p.OwnerName,
+			RepoCount:   p.RepoCount,
+			CreatedTime: p.CreationTime.Unix(),
+			UpdatedTime: p.UpdateTime.Unix(),
 		}
 		list = append(list, project)
 	}
 
-	// TODO /api/v2.0/statistics 查询project总数
-	return list, 0, nil
+	total, err := strconv.Atoi(header.Get("X-Total-Count"))
+	if err != nil {
+		glog.Error(err)
+	}
+	return list, total, nil
 }

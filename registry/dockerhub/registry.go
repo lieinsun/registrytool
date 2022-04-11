@@ -46,7 +46,9 @@ func (c Client) ListProjects(_ context.Context, _ url.Values) ([]registry.Projec
 	return nil, 0, nil
 }
 
-func (c Client) AccountOrProject(account string) registry.ProjectCli {
-	c.account = account
+func (c Client) ProjectClient(account ...string) registry.ProjectCli {
+	if len(account) > 0 {
+		c.account = account[0]
+	}
 	return c
 }

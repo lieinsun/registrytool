@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
+	"github.com/golang/glog"
 	"github.com/lie-inthesun/remotescan/registry"
 )
 
@@ -19,7 +21,7 @@ func (c Client) ListRepositories(ctx context.Context, params url.Values) ([]regi
 		return nil, 0, err
 	}
 
-	resp, err := c.doRequest(req)
+	resp, header, err := c.doRequest(req)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -41,11 +43,14 @@ func (c Client) ListRepositories(ctx context.Context, params url.Values) ([]regi
 		list = append(list, repository)
 	}
 
-	// TODO /api/v2.0/projects/34/summary 查询repositories总数
-	return list, 0, nil
+	total, err := strconv.Atoi(header.Get("X-Total-Count"))
+	if err != nil {
+		glog.Error(err)
+	}
+	return list, total, nil
 }
 
-func (c Client) Repository(repository string) registry.RepositoryCli {
+func (c Client) RepositoryClient(repository string) registry.RepositoryCli {
 	c.repository = repository
 	return c
 }

@@ -10,18 +10,17 @@ import (
 type Registry interface {
 	// Login 检验账号密码
 	Login(ctx context.Context) (string, error)
-	// AccountOrProject 指定仓库account或project
-	AccountOrProject(accountOrProject string) ProjectCli
+	// ProjectClient 指定仓库account或project
+	ProjectClient(accountOrProject ...string) ProjectCli
 	// ListProjects harbor查询项目列表
 	ListProjects(ctx context.Context, params url.Values) ([]Project, int, error)
 }
 
 type ProjectCli interface {
-	// Repository 指定镜像名
-	Repository(repo string) RepositoryCli
+	// RepositoryClient 指定镜像名
+	RepositoryClient(repo string) RepositoryCli
 	// ListRepositories 查询project下面的镜像repo列表
 	ListRepositories(ctx context.Context, params url.Values) ([]Repository, int, error)
-	//GetRepository(ctx context.Context, repoName string) (Repository, error)
 }
 
 type RepositoryCli interface {

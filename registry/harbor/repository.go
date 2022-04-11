@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/aquasecurity/fanal/types"
+	"github.com/golang/glog"
 	"github.com/lie-inthesun/remotescan/registry"
 	"github.com/lie-inthesun/remotescan/scanner"
 )
@@ -31,7 +33,7 @@ func (c Client) ListArtifacts(ctx context.Context, params url.Values) ([]registr
 		return nil, 0, err
 	}
 
-	resp, err := c.doRequest(req)
+	resp, header, err := c.doRequest(req)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -52,14 +54,14 @@ func (c Client) ListArtifacts(ctx context.Context, params url.Values) ([]registr
 		list = append(list, artifact)
 	}
 
-	// TODO /api/v2.0/projects/image/repositories/ccs-build 查询artifacts总数
-	return list, 0, nil
+	total, err := strconv.Atoi(header.Get("X-Total-Count"))
+	if err != nil {
+		glog.Error(err)
+	}
+	return list, total, nil
 }
 
 func (c Client) ListTags(ctx context.Context, params url.Values, reference ...string) ([]registry.Tag, int, error) {
-	//if len(reference) == 0 {
-	//	reference = []string{"latest"}
-	//}
 	c.url.Path = fmt.Sprintf(ListTagsURL, c.project, c.repository, reference[0])
 	c.url.RawQuery = params.Encode()
 	req, err := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
@@ -67,7 +69,7 @@ func (c Client) ListTags(ctx context.Context, params url.Values, reference ...st
 		return nil, 0, err
 	}
 
-	resp, err := c.doRequest(req)
+	resp, header, err := c.doRequest(req)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -86,8 +88,11 @@ func (c Client) ListTags(ctx context.Context, params url.Values, reference ...st
 		list = append(list, tag)
 	}
 
-	// TODO tags总数 需要从response Header X-Total-Count获取
-	return list, len(list), nil
+	total, err := strconv.Atoi(header.Get("X-Total-Count"))
+	if err != nil {
+		glog.Error(err)
+	}
+	return list, total, nil
 }
 
 // ImageDetail
@@ -99,7 +104,7 @@ func (c Client) ImageDetail(ctx context.Context, tagOrDigest string) (registry.I
 		return nil, err
 	}
 
-	resp, err := c.doRequest(req)
+	resp, _, err := c.doRequest(req)
 	if err != nil {
 		return nil, err
 	}

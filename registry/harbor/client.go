@@ -67,7 +67,7 @@ func WithAuth(username, password, token string) Option {
 	}
 }
 
-func (c *Client) doRequest(req *http.Request) ([]byte, error) {
+func (c *Client) doRequest(req *http.Request) ([]byte, http.Header, error) {
 	glog.Infof("HTTP request: %+v", req)
 	req.Header["Accept"] = []string{"application/json"}
 	req.Header["Content-Type"] = []string{"application/json"}
@@ -78,7 +78,7 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if resp.Body != nil {
 		defer resp.Body.Close() //nolint:errcheck
@@ -86,21 +86,21 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 		if resp.StatusCode == http.StatusUnauthorized {
-			return nil, errors.New("unauthorized")
+			return nil, nil, errors.New("unauthorized")
 		} else if resp.StatusCode == http.StatusForbidden {
-			return nil, errors.New("operation not permitted")
+			return nil, nil, errors.New("operation not permitted")
 		}
 		buf, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return nil, fmt.Errorf("bad status code %q: %s", resp.Status, string(buf))
+		return nil, nil, fmt.Errorf("bad status code %q: %s", resp.Status, string(buf))
 	}
 	buf, err := ioutil.ReadAll(resp.Body)
 	glog.Infof("HTTP response body: %s", buf)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return buf, nil
+	return buf, resp.Header, nil
 }
