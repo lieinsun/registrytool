@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	"github.com/golang/glog"
-	"github.com/lie-inthesun/remotescan/registry"
+	"github.com/lie-inthesun/registrytool/registry"
 )
 
 // Login harbor使用Basic token

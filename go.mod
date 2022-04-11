@@ -1,4 +1,4 @@
-module github.com/lie-inthesun/remotescan
+module github.com/lie-inthesun/registrytool
 
 go 1.17
 

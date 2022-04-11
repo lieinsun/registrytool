@@ -8,20 +8,9 @@ import (
 	"net/url"
 
 	"github.com/aquasecurity/fanal/types"
-	"github.com/lie-inthesun/remotescan/registry"
-	"github.com/lie-inthesun/remotescan/scanner"
+	"github.com/lie-inthesun/registrytool/registry"
+	"github.com/lie-inthesun/registrytool/scanner"
 )
-
-type Image struct {
-	registry.Auth
-	Account     string // dockerhub用户
-	Name        string
-	Tag         string
-	Digest      string
-	Size        int
-	Os          string
-	LastUpdated int64
-}
 
 func (c Client) ListArtifacts(_ context.Context, _ url.Values) ([]registry.Artifact, int, error) {
 	return nil, 0, nil
@@ -66,7 +55,7 @@ func (c Client) ListTags(ctx context.Context, params url.Values, _ ...string) ([
 	return list, tagsResp.Count, nil
 }
 
-func (c Client) ImageDetail(ctx context.Context, tag string) (registry.Image, error) {
+func (c Client) ImageDetail(ctx context.Context, tag string) (*registry.Image, error) {
 	c.tag = tag
 	if c.account == "" {
 		c.account = c.username
@@ -94,17 +83,12 @@ func (c Client) ImageDetail(ctx context.Context, tag string) (registry.Image, er
 		return nil, err
 	}
 
-	i := Image{
-		Auth: registry.Auth{
-			UserName: c.username,
-			Password: c.password,
-			Token:    c.token,
-		},
-		Account:     c.account,
+	i := registry.Image{
+		Namespace:   c.account,
 		Name:        c.repository,
 		Tag:         tag,
 		Size:        detailResp.FullSize,
-		LastUpdated: detailResp.LastUpdated.Unix(),
+		UpdatedTime: detailResp.LastUpdated.Unix(),
 	}
 	if len(detailResp.Images) > 0 {
 		img := detailResp.Images[0]
@@ -115,23 +99,23 @@ func (c Client) ImageDetail(ctx context.Context, tag string) (registry.Image, er
 	return &i, nil
 }
 
-func (i *Image) TrivyReference() *scanner.ScanReference {
-	account := i.Account
-	if i.Account == "" {
-		account = i.UserName
+func (c Client) ScanReference(tag, digest string) *scanner.ScanReference {
+	if c.account == "" {
+		c.account = c.username
 	}
-	if i.Tag == "" {
-		i.Tag = "latest"
+	c.tag = tag
+	if c.tag == "" {
+		c.tag = "latest"
 	}
-	ref := fmt.Sprintf("%s/%s:%s", account, i.Name, i.Tag)
-	if i.Digest != "" {
-		ref = ref + "@" + i.Digest
+	ref := fmt.Sprintf("%s/%s:%s", c.account, c.repository, c.tag)
+	if digest != "" {
+		ref = ref + "@" + digest
 	}
 
 	dockerOption := types.DockerOption{
-		UserName:      i.UserName,
-		Password:      i.Password,
-		RegistryToken: i.Token,
+		UserName:      c.username,
+		Password:      c.password,
+		RegistryToken: c.token,
 	}
 	return &scanner.ScanReference{
 		ImageName:    ref,

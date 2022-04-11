@@ -35,3 +35,13 @@ type Tag struct {
 	Size        int    `json:"size"`
 	UpdatedTime int64  `json:"updated_time"`
 }
+
+type Image struct {
+	Namespace   string `json:"namespace"` // dockerhub用户或harbor项目名
+	Name        string `json:"name"`
+	Tag         string `json:"tag"`
+	Digest      string `json:"digest"`
+	Size        int    `json:"size"`
+	Os          string `json:"os"`
+	UpdatedTime int64  `json:"updated_time"`
+}

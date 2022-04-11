@@ -10,20 +10,9 @@ import (
 
 	"github.com/aquasecurity/fanal/types"
 	"github.com/golang/glog"
-	"github.com/lie-inthesun/remotescan/registry"
-	"github.com/lie-inthesun/remotescan/scanner"
+	"github.com/lie-inthesun/registrytool/registry"
+	"github.com/lie-inthesun/registrytool/scanner"
 )
-
-type Image struct {
-	registry.Auth
-	Project  string
-	Name     string
-	Tag      string
-	Digest   string
-	Size     int
-	Os       string
-	PushTime int64
-}
 
 func (c Client) ListArtifacts(ctx context.Context, params url.Values) ([]registry.Artifact, int, error) {
 	c.url.Path = fmt.Sprintf(ListArtifactsURL, c.project, c.repository)
@@ -97,7 +86,7 @@ func (c Client) ListTags(ctx context.Context, params url.Values, reference ...st
 
 // ImageDetail
 // tagOrDigest 镜像tag或者sha256 digest
-func (c Client) ImageDetail(ctx context.Context, tagOrDigest string) (registry.Image, error) {
+func (c Client) ImageDetail(ctx context.Context, tagOrDigest string) (*registry.Image, error) {
 	c.url.Path = fmt.Sprintf(ImageDetailURL, c.project, c.repository, tagOrDigest)
 	req, err := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
 	if err != nil {
@@ -113,19 +102,13 @@ func (c Client) ImageDetail(ctx context.Context, tagOrDigest string) (registry.I
 		return nil, err
 	}
 
-	i := Image{
-		Auth: registry.Auth{
-			Url:      c.url.Host,
-			UserName: c.username,
-			Password: c.password,
-			Token:    c.token,
-		},
-		Project:  c.project,
-		Name:     c.repository,
-		Digest:   detailResp.Digest,
-		Size:     detailResp.Size,
-		Os:       detailResp.ExtraAttrs.Os,
-		PushTime: detailResp.PushTime.Unix(),
+	i := registry.Image{
+		Namespace:   c.project,
+		Name:        c.repository,
+		Digest:      detailResp.Digest,
+		Size:        detailResp.Size,
+		Os:          detailResp.ExtraAttrs.Os,
+		UpdatedTime: detailResp.PushTime.Unix(),
 	}
 	if len(detailResp.Tags) > 0 {
 		tag := detailResp.Tags[0]
@@ -134,18 +117,20 @@ func (c Client) ImageDetail(ctx context.Context, tagOrDigest string) (registry.I
 	return &i, nil
 }
 
-func (i *Image) TrivyReference() *scanner.ScanReference {
-	ref := fmt.Sprintf("%s/%s/%s", i.Url, i.Project, i.Name)
-	if i.Tag != "" {
-		ref = ref + ":" + i.Tag
+func (c Client) ScanReference(tag, digest string) *scanner.ScanReference {
+	c.tag = tag
+	if c.tag == "" {
+		c.tag = "latest"
 	}
-	if i.Digest != "" {
-		ref = ref + "@" + i.Digest
+	ref := fmt.Sprintf("%s/%s/%s:%s", c.url.Host, c.project, c.repository, c.tag)
+	if digest != "" {
+		ref = ref + "@" + digest
 	}
 
 	dockerOption := types.DockerOption{
-		UserName: i.UserName,
-		Password: i.Password,
+		UserName:      c.username,
+		Password:      c.password,
+		RegistryToken: c.token,
 	}
 	return &scanner.ScanReference{
 		ImageName:    ref,

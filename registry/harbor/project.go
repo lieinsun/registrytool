@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
-	"github.com/lie-inthesun/remotescan/registry"
+	"github.com/lie-inthesun/registrytool/registry"
 )
 
 func (c Client) ListRepositories(ctx context.Context, params url.Values) ([]registry.Repository, int, error) {

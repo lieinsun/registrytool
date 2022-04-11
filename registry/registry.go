@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/lie-inthesun/remotescan/scanner"
+	"github.com/lie-inthesun/registrytool/scanner"
 )
 
 type Registry interface {
@@ -30,9 +30,7 @@ type RepositoryCli interface {
 	// reference(tag或digest) dockerhub查询不需要指定
 	ListTags(ctx context.Context, params url.Values, reference ...string) ([]Tag, int, error)
 	// ImageDetail 指定tag查询镜像详情
-	ImageDetail(ctx context.Context, tag string) (Image, error)
-}
-
-type Image interface {
-	TrivyReference() *scanner.ScanReference
+	ImageDetail(ctx context.Context, tag string) (*Image, error)
+	// ScanReference trivy扫描所需的信息
+	ScanReference(tag, digest string) *scanner.ScanReference
 }
