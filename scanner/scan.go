@@ -8,15 +8,24 @@ import (
 	"github.com/aquasecurity/fanal/artifact"
 	artifactImg "github.com/aquasecurity/fanal/artifact/image"
 	"github.com/aquasecurity/fanal/image"
+	dockerTypes "github.com/aquasecurity/fanal/types"
 	trivyScanner "github.com/aquasecurity/trivy/pkg/scanner"
 	"github.com/aquasecurity/trivy/pkg/types"
-	"github.com/lie-inthesun/remotescan/registry"
 )
 
-func (t *Trivy) newScanner(ctx context.Context, img registry.Image) (*trivyScanner.Scanner, func(), error) {
-	reference, dockerOption := img.TrivyReference()
+type ScanReference struct {
+	// ImageName 扫描所需要的镜像全称 digest为可选字段
+	// dockerhub	{username}/{repositoryName}:{tagName}@{digest}
+	//				datadog/agent:latest@sha256:775b3a472c0581c4bceaeafabab78c104cc8a5ce806e6ce0634aa4fcf11e41ab
+	// 自建仓库		{host}/{projectName}/{repositoryName}:{tagName}@{digest}
+	//				127.0.0.1/myProject/myRepo:myTag:@sha256:xxx
+	ImageName    string
+	DockerOption dockerTypes.DockerOption
+}
+
+func (t *Trivy) newScanner(ctx context.Context, refer *ScanReference) (*trivyScanner.Scanner, func(), error) {
 	// TODO 考虑替换NewDockerImage 只处理remote逻辑
-	dockerImg, cleanup, err := image.NewDockerImage(ctx, reference, dockerOption)
+	dockerImg, cleanup, err := image.NewDockerImage(ctx, refer.ImageName, refer.DockerOption)
 	if err != nil {
 		return nil, nil, fmt.Errorf("creating dockerImage: %w", err)
 	}
@@ -32,8 +41,8 @@ func (t *Trivy) newScanner(ctx context.Context, img registry.Image) (*trivyScann
 	return &sc, cleanup, nil
 }
 
-func (t *Trivy) Scan(ctx context.Context, img registry.Image) (*types.Report, error) {
-	scanner, cleanup, err := t.newScanner(ctx, img)
+func (t *Trivy) Scan(ctx context.Context, refer *ScanReference) (*types.Report, error) {
+	scanner, cleanup, err := t.newScanner(ctx, refer)
 	if err != nil {
 		return nil, err
 	}

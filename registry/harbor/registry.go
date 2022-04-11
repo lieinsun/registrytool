@@ -56,13 +56,13 @@ func (c Client) ListProjects(ctx context.Context, params url.Values) ([]registry
 	if err != nil {
 		return nil, 0, err
 	}
-	var listProjectsResp projectsResp
-	if err = json.Unmarshal(resp, &listProjectsResp); err != nil {
+	var projectsResp projectsResponse
+	if err = json.Unmarshal(resp, &projectsResp); err != nil {
 		return nil, 0, err
 	}
 
-	list := make([]registry.Project, 0, len(listProjectsResp))
-	for _, p := range listProjectsResp {
+	list := make([]registry.Project, 0, len(projectsResp))
+	for _, p := range projectsResp {
 		project := registry.Project{
 			Name:         p.Name,
 			Metadata:     p.Metadata,

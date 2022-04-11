@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/lie-inthesun/remotescan/registry"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/lie-inthesun/remotescan/registry"
 )
 
 func (c Client) ListRepositories(ctx context.Context, params url.Values) ([]registry.Repository, int, error) {
@@ -22,13 +23,13 @@ func (c Client) ListRepositories(ctx context.Context, params url.Values) ([]regi
 	if err != nil {
 		return nil, 0, err
 	}
-	var listRepositoriesResp repositoriesResp
-	if err = json.Unmarshal(resp, &listRepositoriesResp); err != nil {
+	var repositoriesResp repositoriesResponse
+	if err = json.Unmarshal(resp, &repositoriesResp); err != nil {
 		return nil, 0, err
 	}
 
-	list := make([]registry.Repository, 0, len(listRepositoriesResp))
-	for _, r := range listRepositoriesResp {
+	list := make([]registry.Repository, 0, len(repositoriesResp))
+	for _, r := range repositoriesResp {
 		repository := registry.Repository{
 			Name:        r.Name,
 			UpdatedTime: r.UpdateTime.Unix(),
@@ -44,7 +45,7 @@ func (c Client) ListRepositories(ctx context.Context, params url.Values) ([]regi
 	return list, 0, nil
 }
 
-func (c Client) Image(image string) registry.ImageCli {
-	c.image = image
+func (c Client) Repository(repository string) registry.RepositoryCli {
+	c.repository = repository
 	return c
 }

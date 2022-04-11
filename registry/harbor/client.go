@@ -14,6 +14,8 @@ const (
 	CurrentUserURL      = "/api/v2.0/users/current"
 	ListProjectsURL     = "/api/v2.0/projects"
 	ListRepositoriesURL = "/api/v2.0/projects/%s/repositories"
+	ListArtifactsURL    = "/api/v2.0/projects/%s/repositories/%s/artifacts"
+	ListTagsURL         = "/api/v2.0/projects/%s/repositories/%s/artifacts/%s/tags"
 	ImageDetailURL      = "/api/v2.0/projects/%s/repositories/%s/artifacts/%s"
 )
 
@@ -27,9 +29,9 @@ type Client struct {
 }
 
 type query struct {
-	project string
-	image   string
-	tag     string
+	project    string
+	repository string
+	tag        string
 }
 
 func NewClient(opts ...Option) *Client {

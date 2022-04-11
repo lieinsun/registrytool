@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/aquasecurity/fanal/types"
 	"github.com/lie-inthesun/remotescan/registry"
+	"github.com/lie-inthesun/remotescan/scanner"
 )
 
 type Image struct {
@@ -21,6 +23,49 @@ type Image struct {
 	LastUpdated int64
 }
 
+func (c Client) ListArtifacts(_ context.Context, _ url.Values) ([]registry.Artifact, int, error) {
+	return nil, 0, nil
+}
+
+func (c Client) ListTags(ctx context.Context, params url.Values, _ ...string) ([]registry.Tag, int, error) {
+	if c.account == "" {
+		c.account = c.username
+	}
+	c.url.Path = fmt.Sprintf(ListTagsURL, c.account, c.repository)
+	c.url.RawQuery = params.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	resp, err := c.doRequest(req)
+	if err != nil {
+		return nil, 0, err
+	}
+	var tagsResp tagsResponse
+	if err = json.Unmarshal(resp, &tagsResp); err != nil {
+		return nil, 0, err
+	}
+
+	var list []registry.Tag
+	if tagsCount := len(tagsResp.Results); tagsCount > 0 {
+		list = make([]registry.Tag, 0, tagsCount)
+		for _, result := range tagsResp.Results {
+			tag := registry.Tag{
+				Name:        result.Name,
+				Size:        result.FullSize,
+				UpdatedTime: result.LastUpdated.Unix(),
+			}
+			if len(result.Images) > 0 {
+				tag.Digest = result.Images[0].Digest
+			}
+			list = append(list, tag)
+		}
+	}
+
+	return list, tagsResp.Count, nil
+}
+
 func (c Client) ImageDetail(ctx context.Context, tag string) (registry.Image, error) {
 	c.tag = tag
 	if c.account == "" {
@@ -29,7 +74,7 @@ func (c Client) ImageDetail(ctx context.Context, tag string) (registry.Image, er
 	if tag == "" {
 		tag = "latest"
 	}
-	repoPath, err := referencePath(c.account, c.image)
+	repoPath, err := referencePath(c.account, c.repository)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +89,7 @@ func (c Client) ImageDetail(ctx context.Context, tag string) (registry.Image, er
 	if err != nil {
 		return nil, err
 	}
-	var detailResp imageDetailResp
+	var detailResp imageDetailResponse
 	if err = json.Unmarshal(resp, &detailResp); err != nil {
 		return nil, err
 	}
@@ -56,7 +101,7 @@ func (c Client) ImageDetail(ctx context.Context, tag string) (registry.Image, er
 			Token:    c.token,
 		},
 		Account:     c.account,
-		Name:        c.image,
+		Name:        c.repository,
 		Tag:         tag,
 		Size:        detailResp.FullSize,
 		LastUpdated: detailResp.LastUpdated.Unix(),
@@ -70,7 +115,7 @@ func (c Client) ImageDetail(ctx context.Context, tag string) (registry.Image, er
 	return &i, nil
 }
 
-func (i *Image) TrivyReference() (string, types.DockerOption) {
+func (i *Image) TrivyReference() *scanner.ScanReference {
 	account := i.Account
 	if i.Account == "" {
 		account = i.UserName
@@ -88,5 +133,8 @@ func (i *Image) TrivyReference() (string, types.DockerOption) {
 		Password:      i.Password,
 		RegistryToken: i.Token,
 	}
-	return ref, dockerOption
+	return &scanner.ScanReference{
+		ImageName:    ref,
+		DockerOption: dockerOption,
+	}
 }

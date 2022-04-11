@@ -17,7 +17,21 @@ type Project struct {
 }
 
 type Repository struct {
-	Namespace   string
-	Name        string
-	UpdatedTime int64
+	Namespace   string `json:"namespace"`
+	Name        string `json:"name"`
+	UpdatedTime int64  `json:"updated_time"`
+}
+
+type Artifact struct {
+	Digest      string `json:"digest"`
+	Os          string `json:"os"`
+	Size        int    `json:"size"`
+	UpdatedTime int64  `json:"updated_time"`
+}
+
+type Tag struct {
+	Name        string `json:"name"`
+	Digest      string `json:"digest"`
+	Size        int    `json:"size"`
+	UpdatedTime int64  `json:"updated_time"`
 }

@@ -22,8 +22,8 @@ const (
 const (
 	LoginURL            = "/v2/users/login"
 	ListRepositoriesURL = "/v2/repositories/%s/"
+	ListTagsURL         = "/v2/repositories/%s/%s/tags/"
 	ImageDetailURL      = "/v2/repositories/%s/tags/%s/"
-	//TagsURL         = "/v2/repositories/%s/tags/"
 )
 
 type Client struct {
@@ -36,9 +36,9 @@ type Client struct {
 }
 
 type query struct {
-	account string
-	image   string
-	tag     string
+	account    string
+	repository string
+	tag        string
 }
 
 func NewClient(opts ...Option) *Client {

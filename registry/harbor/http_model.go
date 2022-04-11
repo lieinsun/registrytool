@@ -2,7 +2,7 @@ package harbor
 
 import "time"
 
-type projectsResp []struct {
+type projectsResponse []struct {
 	ChartCount         int               `json:"chart_count"`
 	CreationTime       time.Time         `json:"creation_time"`
 	CurrentUserRoleId  int               `json:"current_user_role_id"`
@@ -17,7 +17,7 @@ type projectsResp []struct {
 	//CveAllowlist       struct {} `json:"cve_allowlist"`
 }
 
-type repositoriesResp []struct {
+type repositoriesResponse []struct {
 	Id            int       `json:"id"`
 	Name          string    `json:"name"`
 	ProjectID     int       `json:"project_id"`
@@ -27,32 +27,28 @@ type repositoriesResp []struct {
 	UpdateTime    time.Time `json:"update_time"`
 }
 
-type imageDetailResp struct {
-	Digest            string               `json:"digest"`
-	ExtraAttrs        imageDetailExtraAttr `json:"extra_attrs"`
-	Icon              string               `json:"icon"`
-	Id                int                  `json:"id"`
-	ManifestMediaType string               `json:"manifest_media_type"`
-	MediaType         string               `json:"media_type"`
-	ProjectId         int                  `json:"project_id"`
-	PullTime          time.Time            `json:"pull_time"`
-	PushTime          time.Time            `json:"push_time"`
-	RepositoryId      int                  `json:"repository_id"`
-	Size              int                  `json:"size"`
-	Tags              []imageDetailTag     `json:"tags"`
+type artifactsResponse []struct {
+	Digest            string    `json:"digest"`
+	ExtraAttrs        extraAttr `json:"extra_attrs"`
+	Icon              string    `json:"icon"`
+	Id                int       `json:"id"`
+	ManifestMediaType string    `json:"manifest_media_type"`
+	MediaType         string    `json:"media_type"`
+	ProjectId         int       `json:"project_id"`
+	PullTime          time.Time `json:"pull_time"`
+	PushTime          time.Time `json:"push_time"`
+	RepositoryId      int       `json:"repository_id"`
+	Size              int       `json:"size"`
+	Type              string    `json:"type"`
+	//AdditionLinks	struct{}
 	//Labels		[]struct{}
-	//References	struct{}
+	//References    struct{}
+	//Tags          []imageDetailTag
 }
 
-type imageDetailExtraAttr struct {
-	Architecture string    `json:"architecture"`
-	Author       string    `json:"author"`
-	Created      time.Time `json:"created"`
-	Os           string    `json:"os"`
-	//Config	struct{}
-}
+type tagsResponse []tagResponse
 
-type imageDetailTag struct {
+type tagResponse struct {
 	ArtifactId   int       `json:"artifact_id"`
 	Id           int       `json:"id"`
 	Immutable    bool      `json:"immutable"`
@@ -61,4 +57,29 @@ type imageDetailTag struct {
 	PushTime     time.Time `json:"push_time"`
 	RepositoryId int       `json:"repository_id"`
 	Signed       bool      `json:"signed"`
+}
+
+type imageDetailResp struct {
+	Digest            string        `json:"digest"`
+	ExtraAttrs        extraAttr     `json:"extra_attrs"`
+	Icon              string        `json:"icon"`
+	Id                int           `json:"id"`
+	ManifestMediaType string        `json:"manifest_media_type"`
+	MediaType         string        `json:"media_type"`
+	ProjectId         int           `json:"project_id"`
+	PullTime          time.Time     `json:"pull_time"`
+	PushTime          time.Time     `json:"push_time"`
+	RepositoryId      int           `json:"repository_id"`
+	Size              int           `json:"size"`
+	Tags              []tagResponse `json:"tags"`
+	//Labels		[]struct{}
+	//References	struct{}
+}
+
+type extraAttr struct {
+	Architecture string    `json:"architecture"`
+	Author       string    `json:"author"`
+	Created      time.Time `json:"created"`
+	Os           string    `json:"os"`
+	//Config	struct{}
 }

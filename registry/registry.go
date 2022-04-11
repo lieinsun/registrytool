@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/aquasecurity/fanal/types"
+	"github.com/lie-inthesun/remotescan/scanner"
 )
 
 type Registry interface {
@@ -17,17 +17,23 @@ type Registry interface {
 }
 
 type ProjectCli interface {
-	// Image 指定镜像名
-	Image(image string) ImageCli
+	// Repository 指定镜像名
+	Repository(repo string) RepositoryCli
+	// ListRepositories 查询project下面的镜像repo列表
 	ListRepositories(ctx context.Context, params url.Values) ([]Repository, int, error)
-	//Get() (Project, error)
+	//GetRepository(ctx context.Context, repoName string) (Repository, error)
 }
 
-type ImageCli interface {
-
+type RepositoryCli interface {
+	// ListArtifacts harbor查询repo下面的tag列表
+	ListArtifacts(ctx context.Context, params url.Values) ([]Artifact, int, error)
+	// ListTags 查询repo下面的tag列表
+	// reference(tag或digest) dockerhub查询不需要指定
+	ListTags(ctx context.Context, params url.Values, reference ...string) ([]Tag, int, error)
+	// ImageDetail 指定tag查询镜像详情
 	ImageDetail(ctx context.Context, tag string) (Image, error)
 }
 
 type Image interface {
-	TrivyReference() (string, types.DockerOption)
+	TrivyReference() *scanner.ScanReference
 }

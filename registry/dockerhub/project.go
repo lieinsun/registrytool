@@ -25,7 +25,7 @@ func (c Client) ListRepositories(ctx context.Context, params url.Values) ([]regi
 	if err != nil {
 		return nil, 0, err
 	}
-	var reposResp hubReposResponse
+	var reposResp repositoriesResponse
 	if err = json.Unmarshal(resp, &reposResp); err != nil {
 		return nil, 0, err
 	}
@@ -46,7 +46,7 @@ func (c Client) ListRepositories(ctx context.Context, params url.Values) ([]regi
 	return list, reposResp.Count, nil
 }
 
-func (c Client) Image(image string) registry.ImageCli {
-	c.image = image
+func (c Client) Repository(repository string) registry.RepositoryCli {
+	c.repository = repository
 	return c
 }
