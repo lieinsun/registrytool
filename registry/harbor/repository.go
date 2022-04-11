@@ -2,42 +2,76 @@ package harbor
 
 import (
 	"context"
-	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
+	"github.com/aquasecurity/fanal/types"
 	"github.com/lie-inthesun/remotescan/registry"
 )
 
-// Login harbor使用Basic token
-func (c *Client) Login(ctx context.Context) (string, error) {
-	c.token = base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", c.username, c.password)))
-	// 使用ping 检查token是否有效
-	err := c.ping(ctx)
-	if err != nil {
-		c.token = ""
-		return "", err
-	}
-	return c.token, nil
+type Image struct {
+	registry.Auth
+	Project  string
+	Name     string
+	Tag      string
+	Digest   string
+	Size     int
+	Os       string
+	PushTime int64
 }
 
-// Ping 使用查询当前登录用户的方法验证登录
-func (c *Client) ping(ctx context.Context) error {
-	u := c.url
-	u.Path = CurrentUserURL
-	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+// ImageDetail
+// tagOrDigest 镜像tag或者sha256 digest
+func (c Client) ImageDetail(ctx context.Context, tagOrDigest string) (registry.Image, error) {
+	c.url.Path = fmt.Sprintf(ImageDetailURL, c.project, c.image, tagOrDigest)
+	req, err := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = c.doRequest(req)
+	resp, err := c.doRequest(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	var detailResp imageDetailResp
+	if err = json.Unmarshal(resp, &detailResp); err != nil {
+		return nil, err
+	}
+
+	i := Image{
+		Auth: registry.Auth{
+			Url:      c.url.Host,
+			UserName: c.username,
+			Password: c.password,
+			Token:    c.token,
+		},
+		Project:  c.project,
+		Name:     c.image,
+		Digest:   detailResp.Digest,
+		Size:     detailResp.Size,
+		Os:       detailResp.ExtraAttrs.Os,
+		PushTime: detailResp.PushTime.Unix(),
+	}
+	if len(detailResp.Tags) > 0 {
+		tag := detailResp.Tags[0]
+		i.Tag = tag.Name
+	}
+	return &i, nil
 }
 
-func (c Client) AccountOrProject(project string) registry.ProjectCli {
-	c.project = project
-	return c
+func (i *Image) TrivyReference() (string, types.DockerOption) {
+	ref := fmt.Sprintf("%s/%s/%s", i.Url, i.Project, i.Name)
+	if i.Tag != "" {
+		ref = ref + ":" + i.Tag
+	}
+	if i.Digest != "" {
+		ref = ref + "@" + i.Digest
+	}
+
+	dockerOption := types.DockerOption{
+		UserName: i.UserName,
+		Password: i.Password,
+	}
+	return ref, dockerOption
 }

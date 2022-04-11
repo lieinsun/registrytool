@@ -47,30 +47,30 @@ type hubImage struct {
 //	StarCount   int
 //	IsPrivate   bool
 //}
-//
-//type hubReposResponse struct {
-//	Count    int              `json:"count"`
-//	Next     string           `json:"next,omitempty"`
-//	Previous string           `json:"previous,omitempty"`
-//	Results  []hubReposResult `json:"results,omitempty"`
-//}
-//
-//type hubReposResult struct {
-//	Name           string    `json:"name"`
-//	Namespace      string    `json:"namespace"`
-//	PullCount      int       `json:"pull_count"`
-//	StarCount      int       `json:"star_count"`
-//	RepositoryType string    `json:"repository_type"`
-//	CanEdit        bool      `json:"can_edit"`
-//	Description    string    `json:"description,omitempty"`
-//	IsAutomated    bool      `json:"is_automated"`
-//	IsMigrated     bool      `json:"is_migrated"`
-//	IsPrivate      bool      `json:"is_private"`
-//	LastUpdated    time.Time `json:"last_updated"`
-//	Status         int       `json:"status"`
-//	User           string    `json:"user"`
-//}
-//
+
+type hubReposResponse struct {
+	Count    int              `json:"count"`
+	Next     string           `json:"next,omitempty"`
+	Previous string           `json:"previous,omitempty"`
+	Results  []hubReposResult `json:"results,omitempty"`
+}
+
+type hubReposResult struct {
+	Name           string    `json:"name"`
+	Namespace      string    `json:"namespace"`
+	PullCount      int       `json:"pull_count"`
+	StarCount      int       `json:"star_count"`
+	RepositoryType string    `json:"repository_type"`
+	CanEdit        bool      `json:"can_edit"`
+	Description    string    `json:"description,omitempty"`
+	IsAutomated    bool      `json:"is_automated"`
+	IsMigrated     bool      `json:"is_migrated"`
+	IsPrivate      bool      `json:"is_private"`
+	LastUpdated    time.Time `json:"last_updated"`
+	Status         int       `json:"status"`
+	User           string    `json:"user"`
+}
+
 //type hubTag struct {
 //	Name                string     `json:"name"`
 //	FullSize            int        `json:"full_size"`

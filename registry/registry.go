@@ -2,39 +2,30 @@ package registry
 
 import (
 	"context"
+	"net/url"
 
 	"github.com/aquasecurity/fanal/types"
 )
 
-type Auth struct {
-	Url      string
-	UserName string
-	Password string
-	Token    string
-}
-
 type Registry interface {
 	// Login 检验账号密码
 	Login(ctx context.Context) (string, error)
-	// GetImageDetail 查询指定tag的镜像详情
-	//GetImageDetail(ctx context.Context, accountOrProject, image, tag string) (Image, error)
-
 	// AccountOrProject 指定仓库account或project
 	AccountOrProject(accountOrProject string) ProjectCli
+	// ListProjects harbor查询项目列表
+	ListProjects(ctx context.Context, params url.Values) ([]Project, int, error)
 }
 
 type ProjectCli interface {
+	// Image 指定镜像名
 	Image(image string) ImageCli
+	ListRepositories(ctx context.Context, params url.Values) ([]Repository, int, error)
 	//Get() (Project, error)
-	//List() ([]Project, int, error)
-}
-
-type Project interface {
 }
 
 type ImageCli interface {
-	//Get(tag string) (Image, error)
-	Detail(ctx context.Context, tag string) (Image, error)
+
+	ImageDetail(ctx context.Context, tag string) (Image, error)
 }
 
 type Image interface {

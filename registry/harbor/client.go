@@ -11,8 +11,10 @@ import (
 )
 
 const (
-	CurrentUserURL = "/api/v2.0/users/current"
-	ImageDetailURL = "/api/v2.0/projects/%s/repositories/%s/artifacts/%s"
+	CurrentUserURL      = "/api/v2.0/users/current"
+	ListProjectsURL     = "/api/v2.0/projects"
+	ListRepositoriesURL = "/api/v2.0/projects/%s/repositories"
+	ImageDetailURL      = "/api/v2.0/projects/%s/repositories/%s/artifacts/%s"
 )
 
 type Client struct {

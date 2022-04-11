@@ -20,9 +20,9 @@ const (
 // /v2/namespaces/{namespace}/repositories/{repository}/images 这个接口可以方便的拿到image及tags的信息 但是需要Pro
 // Docker image management features are a Pro & Team feature, to find out more about Docker's Pro and Team subscriptions please go to https://www.docker.com/pricing
 const (
-	LoginURL       = "/v2/users/login"
-	ImageDetailURL = "/v2/repositories/%s/tags/%s/"
-	//RepositoriesURL = "/v2/repositories/%s/"
+	LoginURL            = "/v2/users/login"
+	ListRepositoriesURL = "/v2/repositories/%s/"
+	ImageDetailURL      = "/v2/repositories/%s/tags/%s/"
 	//TagsURL         = "/v2/repositories/%s/tags/"
 )
 
