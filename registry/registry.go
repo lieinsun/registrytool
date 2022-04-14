@@ -10,6 +10,8 @@ import (
 type Registry interface {
 	// Login 检验账号密码
 	Login(ctx context.Context) (string, error)
+	// CheckConn 检查客户端连接 不可以使用login频繁检测
+	CheckConn(ctx context.Context) error
 	// ProjectClient 指定仓库account或project
 	ProjectClient(accountOrProject ...string) ProjectCli
 	// ListProjects harbor查询项目列表

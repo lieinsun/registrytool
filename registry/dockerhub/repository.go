@@ -27,7 +27,7 @@ func (c Client) ListTags(ctx context.Context, params url.Values, _ ...string) ([
 		return nil, 0, err
 	}
 
-	resp, err := c.doRequest(req)
+	resp, err := c.doRequest(req, withAuth(c.Login))
 	if err != nil {
 		return nil, 0, err
 	}
@@ -74,7 +74,7 @@ func (c Client) ImageDetail(ctx context.Context, tag string) (*registry.Image, e
 		return nil, err
 	}
 
-	resp, err := c.doRequest(req)
+	resp, err := c.doRequest(req, withAuth(c.Login))
 	if err != nil {
 		return nil, err
 	}

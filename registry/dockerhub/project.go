@@ -21,7 +21,7 @@ func (c Client) ListRepositories(ctx context.Context, params url.Values) ([]regi
 		return nil, 0, err
 	}
 
-	resp, err := c.doRequest(req)
+	resp, err := c.doRequest(req, withAuth(c.Login))
 	if err != nil {
 		return nil, 0, err
 	}

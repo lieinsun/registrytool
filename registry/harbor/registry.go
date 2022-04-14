@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -26,7 +27,7 @@ func (c *Client) Login(ctx context.Context) (string, error) {
 }
 
 // Ping 使用查询当前登录用户的方法验证登录
-func (c *Client) ping(ctx context.Context) error {
+func (c Client) ping(ctx context.Context) error {
 	u := c.url
 	u.Path = CurrentUserURL
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
@@ -39,6 +40,13 @@ func (c *Client) ping(ctx context.Context) error {
 		return err
 	}
 	return nil
+}
+
+func (c *Client) CheckConn(ctx context.Context) error {
+	if c.token == "" {
+		return errors.New("unauthorized")
+	}
+	return c.ping(ctx)
 }
 
 func (c Client) ProjectClient(project ...string) registry.ProjectCli {

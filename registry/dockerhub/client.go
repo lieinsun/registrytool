@@ -1,6 +1,7 @@
 package dockerhub
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,7 +14,9 @@ import (
 )
 
 const (
-	Domain = "hub.docker.com"
+	RegistryDomain  = "hub.docker.com"
+	RateAuthDomain  = "auth.docker.io"
+	RateCheckDomain = "registry-1.docker.io"
 )
 
 // https://www.postman.com/dockerdev/workspace/docker-hub/example/17990590-23905501-eddd-43cd-b624-380188a40835
@@ -24,6 +27,9 @@ const (
 	ListRepositoriesURL = "/v2/repositories/%s/"
 	ListTagsURL         = "/v2/repositories/%s/%s/tags/"
 	ImageDetailURL      = "/v2/repositories/%s/tags/%s/"
+
+	RateAuthURL  = "/token?service=registry.docker.io&scope=repository:ratelimitpreview/test:pull"
+	RateCheckURL = "/v2/ratelimitpreview/test/manifests/latest"
 )
 
 type Client struct {
@@ -46,7 +52,7 @@ func NewClient(opts ...Option) *Client {
 		client: new(http.Client),
 		url: url.URL{
 			Scheme: "https",
-			Host:   Domain,
+			Host:   RegistryDomain,
 		},
 	}
 
@@ -80,18 +86,29 @@ func referencePath(repo, image string) (string, error) {
 	return reference.Path(ref), nil
 }
 
-func (c *Client) doRequest(req *http.Request) ([]byte, error) {
+// authFunc 校验账号密码并获取token
+type authFunc func(context.Context) (string, error)
+type reqOption func(*http.Request)
+
+func withAuth(f authFunc) reqOption {
+	return func(req *http.Request) {
+		if req.Header.Get("Authorization") == "" {
+			token, err := f(req.Context())
+			if err != nil {
+				return
+			}
+			req.Header["Authorization"] = []string{fmt.Sprintf("Bearer %s", token)}
+		}
+	}
+}
+
+func (c *Client) doRequest(req *http.Request, opts ...reqOption) ([]byte, error) {
 	glog.Infof("HTTP request: %+v", req)
 	req.Header["Accept"] = []string{"application/json"}
 	req.Header["Content-Type"] = []string{"application/json"}
-	if c.token == "" && req.URL.Path != LoginURL {
-		token, err := c.Login(req.Context())
-		if err != nil {
-			return nil, err
-		}
-		c.token = token
+	for _, opt := range opts {
+		opt(req)
 	}
-	req.Header["Authorization"] = []string{fmt.Sprintf("Bearer %s", c.token)}
 
 	resp, err := c.client.Do(req)
 	if err != nil {
