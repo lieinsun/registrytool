@@ -1,4 +1,4 @@
-module github.com/lie-inthesun/registrytool
+module github.com/lieinsun/registrytool
 
 go 1.17
 
@@ -7,7 +7,6 @@ require (
 	github.com/aquasecurity/trivy v0.24.4
 	github.com/docker/distribution v2.8.0+incompatible
 	github.com/docker/docker v20.10.12+incompatible
-	github.com/golang/glog v1.0.0
 )
 
 require (

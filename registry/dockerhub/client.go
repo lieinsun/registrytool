@@ -10,7 +10,6 @@ import (
 	"net/url"
 
 	"github.com/docker/distribution/reference"
-	"github.com/golang/glog"
 )
 
 const (
@@ -103,7 +102,6 @@ func withAuth(f authFunc) reqOption {
 }
 
 func (c *Client) doRequest(req *http.Request, opts ...reqOption) ([]byte, error) {
-	glog.Infof("HTTP request: %+v", req)
 	req.Header["Accept"] = []string{"application/json"}
 	req.Header["Content-Type"] = []string{"application/json"}
 	for _, opt := range opts {
@@ -133,7 +131,6 @@ func (c *Client) doRequest(req *http.Request, opts ...reqOption) ([]byte, error)
 		return nil, fmt.Errorf("bad status code %q", resp.Status)
 	}
 	buf, err := ioutil.ReadAll(resp.Body)
-	glog.Infof("HTTP response body: %s", buf)
 	if err != nil {
 		return nil, err
 	}

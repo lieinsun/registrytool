@@ -10,8 +10,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/golang/glog"
-	"github.com/lie-inthesun/registrytool/registry"
+	"github.com/lieinsun/registrytool/registry"
 )
 
 // Login harbor使用Basic token
@@ -86,9 +85,6 @@ func (c Client) ListProjects(ctx context.Context, params url.Values) ([]registry
 		list = append(list, project)
 	}
 
-	total, err := strconv.Atoi(header.Get("X-Total-Count"))
-	if err != nil {
-		glog.Error(err)
-	}
+	total, _ := strconv.Atoi(header.Get("X-Total-Count"))
 	return list, total, nil
 }

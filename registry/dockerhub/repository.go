@@ -8,8 +8,8 @@ import (
 	"net/url"
 
 	"github.com/aquasecurity/fanal/types"
-	"github.com/lie-inthesun/registrytool/registry"
-	"github.com/lie-inthesun/registrytool/scanner"
+	"github.com/lieinsun/registrytool/registry"
+	"github.com/lieinsun/registrytool/scanner"
 )
 
 func (c Client) ListArtifacts(_ context.Context, _ url.Values) ([]registry.Artifact, int, error) {

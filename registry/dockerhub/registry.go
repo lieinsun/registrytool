@@ -11,7 +11,8 @@ import (
 	"net/url"
 
 	"github.com/docker/docker/api/types"
-	"github.com/lie-inthesun/registrytool/registry"
+
+	"github.com/lieinsun/registrytool/registry"
 )
 
 func (c *Client) Login(ctx context.Context) (string, error) {

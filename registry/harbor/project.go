@@ -9,8 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/golang/glog"
-	"github.com/lie-inthesun/registrytool/registry"
+	"github.com/lieinsun/registrytool/registry"
 )
 
 func (c Client) ListRepositories(ctx context.Context, params url.Values) ([]registry.Repository, int, error) {
@@ -43,10 +42,7 @@ func (c Client) ListRepositories(ctx context.Context, params url.Values) ([]regi
 		list = append(list, repository)
 	}
 
-	total, err := strconv.Atoi(header.Get("X-Total-Count"))
-	if err != nil {
-		glog.Error(err)
-	}
+	total, _ := strconv.Atoi(header.Get("X-Total-Count"))
 	return list, total, nil
 }
 

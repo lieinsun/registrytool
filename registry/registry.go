@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/lie-inthesun/registrytool/scanner"
+	"github.com/lieinsun/registrytool/scanner"
 )
 
 type Registry interface {

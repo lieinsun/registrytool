@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/lie-inthesun/registrytool/registry"
+	"github.com/lieinsun/registrytool/registry"
 )
 
 func (c Client) ListRepositories(ctx context.Context, params url.Values) ([]registry.Repository, int, error) {

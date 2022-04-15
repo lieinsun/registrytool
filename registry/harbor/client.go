@@ -6,8 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-
-	"github.com/golang/glog"
 )
 
 const (
@@ -68,7 +66,6 @@ func WithAuth(username, password, token string) Option {
 }
 
 func (c *Client) doRequest(req *http.Request) ([]byte, http.Header, error) {
-	glog.Infof("HTTP request: %+v", req)
 	req.Header["Accept"] = []string{"application/json"}
 	req.Header["Content-Type"] = []string{"application/json"}
 	if c.token == "" && req.URL.Path != CurrentUserURL {
@@ -97,7 +94,6 @@ func (c *Client) doRequest(req *http.Request) ([]byte, http.Header, error) {
 		return nil, nil, fmt.Errorf("bad status code %q: %s", resp.Status, string(buf))
 	}
 	buf, err := ioutil.ReadAll(resp.Body)
-	glog.Infof("HTTP response body: %s", buf)
 	if err != nil {
 		return nil, nil, err
 	}

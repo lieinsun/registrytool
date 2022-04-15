@@ -9,9 +9,8 @@ import (
 	"strconv"
 
 	"github.com/aquasecurity/fanal/types"
-	"github.com/golang/glog"
-	"github.com/lie-inthesun/registrytool/registry"
-	"github.com/lie-inthesun/registrytool/scanner"
+	"github.com/lieinsun/registrytool/registry"
+	"github.com/lieinsun/registrytool/scanner"
 )
 
 func (c Client) ListArtifacts(ctx context.Context, params url.Values) ([]registry.Artifact, int, error) {
@@ -43,10 +42,7 @@ func (c Client) ListArtifacts(ctx context.Context, params url.Values) ([]registr
 		list = append(list, artifact)
 	}
 
-	total, err := strconv.Atoi(header.Get("X-Total-Count"))
-	if err != nil {
-		glog.Error(err)
-	}
+	total, _ := strconv.Atoi(header.Get("X-Total-Count"))
 	return list, total, nil
 }
 
@@ -77,10 +73,7 @@ func (c Client) ListTags(ctx context.Context, params url.Values, reference ...st
 		list = append(list, tag)
 	}
 
-	total, err := strconv.Atoi(header.Get("X-Total-Count"))
-	if err != nil {
-		glog.Error(err)
-	}
+	total, _ := strconv.Atoi(header.Get("X-Total-Count"))
 	return list, total, nil
 }
 
