@@ -19,6 +19,8 @@ type Project struct {
 type Repository struct {
 	Namespace   string `json:"namespace"`
 	Name        string `json:"name"`
+	IsPrivate   bool   `json:"is_private"`
+	CreatedTime int64  `json:"created_time"`
 	UpdatedTime int64  `json:"updated_time"`
 }
 

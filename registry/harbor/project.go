@@ -33,6 +33,7 @@ func (c Client) ListRepositories(ctx context.Context, params url.Values) ([]regi
 	for _, r := range repositoriesResp {
 		repository := registry.Repository{
 			Name:        r.Name,
+			CreatedTime: r.CreationTime.Unix(),
 			UpdatedTime: r.UpdateTime.Unix(),
 		}
 		if index := strings.Index(r.Name, "/"); index > 0 {

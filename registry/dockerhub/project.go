@@ -37,6 +37,7 @@ func (c Client) ListRepositories(ctx context.Context, params url.Values) ([]regi
 			repository := registry.Repository{
 				Name:        result.Name,
 				Namespace:   result.Namespace,
+				IsPrivate:   result.IsPrivate,
 				UpdatedTime: result.LastUpdated.Unix(),
 			}
 			list = append(list, repository)
