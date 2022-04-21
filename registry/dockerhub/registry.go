@@ -47,7 +47,7 @@ func (c *Client) Login(ctx context.Context) (string, error) {
 
 // CheckConn 查询rateLimit判断客户端是否能正常访问
 // https://docs.docker.com/docker-hub/download-rate-limit/
-func (c *Client) CheckConn(ctx context.Context) error {
+func (c Client) CheckConn(ctx context.Context) error {
 	if c.token == "" {
 		return errors.New("unauthorized")
 	}

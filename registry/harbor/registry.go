@@ -41,7 +41,7 @@ func (c Client) ping(ctx context.Context) error {
 	return nil
 }
 
-func (c *Client) CheckConn(ctx context.Context) error {
+func (c Client) CheckConn(ctx context.Context) error {
 	if c.token == "" {
 		return errors.New("unauthorized")
 	}
