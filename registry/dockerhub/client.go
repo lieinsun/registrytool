@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/docker/docker/client"
+
 	"github.com/docker/distribution/reference"
 )
 
@@ -38,6 +40,7 @@ type Client struct {
 	password string
 	token    string
 	query
+	dockerCli *client.Client
 }
 
 type query struct {
@@ -46,7 +49,8 @@ type query struct {
 	tag        string
 }
 
-func NewClient(opts ...Option) *Client {
+func NewClient(opts ...Option) (*Client, error) {
+	var err error
 	cli := Client{
 		client: new(http.Client),
 		url: url.URL{
@@ -54,11 +58,15 @@ func NewClient(opts ...Option) *Client {
 			Host:   RegistryDomain,
 		},
 	}
+	cli.dockerCli, err = client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, opt := range opts {
 		opt(&cli)
 	}
-	return &cli
+	return &cli, nil
 }
 
 type Option func(image *Client)

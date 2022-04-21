@@ -4,11 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 
-	"github.com/aquasecurity/fanal/types"
+	fanalTypes "github.com/aquasecurity/fanal/types"
+	dockerTypes "github.com/docker/docker/api/types"
+
 	"github.com/lieinsun/registrytool/registry"
 	"github.com/lieinsun/registrytool/scanner"
 )
@@ -113,23 +116,40 @@ func (c Client) ImageDetail(ctx context.Context, tagOrDigest string) (*registry.
 	return &i, nil
 }
 
-func (c Client) ScanReference(tag, digest string) *scanner.ScanReference {
+func (c Client) Reference(tag, digest string) *scanner.Reference {
+	ref := fmt.Sprintf("%s/%s/%s", c.url.Host, c.project, c.repository)
 	c.tag = tag
-	if c.tag == "" {
-		c.tag = "latest"
+	if c.tag != "" {
+		ref = ref + ":" + c.tag
 	}
-	ref := fmt.Sprintf("%s/%s/%s:%s", c.url.Host, c.project, c.repository, c.tag)
 	if digest != "" {
 		ref = ref + "@" + digest
 	}
 
-	dockerOption := types.DockerOption{
+	dockerOption := fanalTypes.DockerOption{
 		UserName:      c.username,
 		Password:      c.password,
 		RegistryToken: c.token,
 	}
-	return &scanner.ScanReference{
+	return &scanner.Reference{
 		ImageName:    ref,
 		DockerOption: dockerOption,
 	}
+}
+
+func (c Client) ImagePull(ctx context.Context, tag, digest string) error {
+	reference := c.Reference(tag, digest)
+	imagePullOptions := dockerTypes.ImagePullOptions{
+		RegistryAuth: registry.EncodeAuthHeader(c.username, c.password),
+	}
+	res, err := c.dockerCli.ImagePull(ctx, reference.ImageName, imagePullOptions)
+	if err != nil {
+		return err
+	}
+	defer res.Close()
+	if _, err = ioutil.ReadAll(res); err != nil {
+		return err
+	}
+
+	return nil
 }

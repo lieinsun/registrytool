@@ -13,7 +13,7 @@ import (
 	"github.com/aquasecurity/trivy/pkg/types"
 )
 
-type ScanReference struct {
+type Reference struct {
 	// ImageName 扫描所需要的镜像全称 digest为可选字段
 	// dockerhub	{username}/{repositoryName}:{tagName}@{digest}
 	//				datadog/agent:latest@sha256:775b3a472c0581c4bceaeafabab78c104cc8a5ce806e6ce0634aa4fcf11e41ab
@@ -23,7 +23,7 @@ type ScanReference struct {
 	DockerOption dockerTypes.DockerOption
 }
 
-func (t *Trivy) newScanner(ctx context.Context, refer *ScanReference) (*trivyScanner.Scanner, func(), error) {
+func (t *Trivy) newScanner(ctx context.Context, refer *Reference) (*trivyScanner.Scanner, func(), error) {
 	// TODO 考虑替换NewDockerImage 只处理remote逻辑
 	dockerImg, cleanup, err := image.NewDockerImage(ctx, refer.ImageName, refer.DockerOption)
 	if err != nil {
@@ -41,7 +41,7 @@ func (t *Trivy) newScanner(ctx context.Context, refer *ScanReference) (*trivySca
 	return &sc, cleanup, nil
 }
 
-func (t *Trivy) Scan(ctx context.Context, refer *ScanReference) (*types.Report, error) {
+func (t *Trivy) Scan(ctx context.Context, refer *Reference) (*types.Report, error) {
 	scanner, cleanup, err := t.newScanner(ctx, refer)
 	if err != nil {
 		return nil, err

@@ -2,6 +2,8 @@ package registry
 
 import (
 	"context"
+	"encoding/base64"
+	"fmt"
 	"net/url"
 
 	"github.com/lieinsun/registrytool/scanner"
@@ -33,6 +35,15 @@ type RepositoryCli interface {
 	ListTags(ctx context.Context, params url.Values, reference ...string) ([]Tag, int, error)
 	// ImageDetail 指定tag查询镜像详情
 	ImageDetail(ctx context.Context, tag string) (*Image, error)
-	// ScanReference trivy扫描所需的信息
-	ScanReference(tag, digest string) *scanner.ScanReference
+	// Reference 镜像全称 用于拉取/扫描
+	Reference(tag, digest string) *scanner.Reference
+
+	ImagePull(ctx context.Context, tag, digest string) error
+}
+
+func EncodeAuthHeader(username string, password string) string {
+	src := fmt.Sprintf("{ \"username\": \"%s\", \"password\": \"%s\" }", username, password)
+	encoded := base64.StdEncoding.EncodeToString([]byte(src))
+
+	return encoded
 }
