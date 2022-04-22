@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/docker/docker/api/types"
 	"net/url"
 
 	"github.com/lieinsun/registrytool/scanner"
@@ -39,6 +40,7 @@ type RepositoryCli interface {
 	Reference(tag, digest string) *scanner.Reference
 
 	ImagePull(ctx context.Context, tag, digest string) error
+	ImageInspect(ctx context.Context, tag, digest string) (*types.ImageInspect, error)
 }
 
 func EncodeAuthHeader(username string, password string) string {

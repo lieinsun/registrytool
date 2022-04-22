@@ -153,3 +153,12 @@ func (c Client) ImagePull(ctx context.Context, tag, digest string) error {
 
 	return nil
 }
+
+func (c *Client) ImageInspect(ctx context.Context, tag, digest string) (*dockerTypes.ImageInspect, error) {
+	ref := c.Reference(tag, digest)
+	raw, _, err := c.dockerCli.ImageInspectWithRaw(ctx, ref.ImageName)
+	if err != nil {
+		return nil, err
+	}
+	return &raw, nil
+}
