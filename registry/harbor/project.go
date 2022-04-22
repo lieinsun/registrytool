@@ -49,5 +49,5 @@ func (c Client) ListRepositories(ctx context.Context, params url.Values) ([]regi
 
 func (c Client) RepositoryClient(repository string) registry.RepositoryCli {
 	c.repository = repository
-	return c
+	return &c
 }
