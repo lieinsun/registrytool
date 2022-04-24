@@ -4,22 +4,25 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 
 	fanalTypes "github.com/aquasecurity/fanal/types"
-	dockerTypes "github.com/docker/docker/api/types"
 
 	"github.com/lieinsun/registrytool/registry"
 	"github.com/lieinsun/registrytool/scanner"
 )
 
-func (c Client) ListArtifacts(ctx context.Context, params url.Values) ([]registry.Artifact, int, error) {
-	c.url.Path = fmt.Sprintf(ListArtifactsURL, c.project, c.repository)
-	c.url.RawQuery = params.Encode()
-	req, err := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
+func (c *Client) Repository() string {
+	return c.query.repository
+}
+
+func (c *Client) ListArtifacts(ctx context.Context, params url.Values) ([]registry.Artifact, int, error) {
+	u := c.url
+	u.Path = fmt.Sprintf(ListArtifactsURL, c.project, c.repository)
+	u.RawQuery = params.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -49,13 +52,14 @@ func (c Client) ListArtifacts(ctx context.Context, params url.Values) ([]registr
 	return list, total, nil
 }
 
-func (c Client) ListTags(ctx context.Context, params url.Values, reference ...string) ([]registry.Tag, int, error) {
+func (c *Client) ListTags(ctx context.Context, params url.Values, reference ...string) ([]registry.Tag, int, error) {
 	if len(reference) == 0 {
 		reference = []string{"latest"}
 	}
-	c.url.Path = fmt.Sprintf(ListTagsURL, c.project, c.repository, reference[0])
-	c.url.RawQuery = params.Encode()
-	req, err := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
+	u := c.url
+	u.Path = fmt.Sprintf(ListTagsURL, c.project, c.repository, reference[0])
+	u.RawQuery = params.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -85,9 +89,10 @@ func (c Client) ListTags(ctx context.Context, params url.Values, reference ...st
 
 // ImageDetail
 // tagOrDigest 镜像tag或者sha256 digest
-func (c Client) ImageDetail(ctx context.Context, tagOrDigest string) (*registry.Image, error) {
-	c.url.Path = fmt.Sprintf(ImageDetailURL, c.project, c.repository, tagOrDigest)
-	req, err := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
+func (c *Client) ImageDetail(ctx context.Context, tagOrDigest string) (*registry.Image, error) {
+	u := c.url
+	u.Path = fmt.Sprintf(ImageDetailURL, c.project, c.repository, tagOrDigest)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +121,7 @@ func (c Client) ImageDetail(ctx context.Context, tagOrDigest string) (*registry.
 	return &i, nil
 }
 
-func (c Client) Reference(tag, digest string) *scanner.Reference {
+func (c *Client) Reference(tag, digest string) *scanner.Reference {
 	ref := fmt.Sprintf("%s/%s/%s", c.url.Host, c.project, c.repository)
 	c.tag = tag
 	if c.tag != "" {
@@ -135,30 +140,4 @@ func (c Client) Reference(tag, digest string) *scanner.Reference {
 		ImageName:    ref,
 		DockerOption: dockerOption,
 	}
-}
-
-func (c Client) ImagePull(ctx context.Context, tag, digest string) error {
-	reference := c.Reference(tag, digest)
-	imagePullOptions := dockerTypes.ImagePullOptions{
-		RegistryAuth: registry.EncodeAuthHeader(c.username, c.password),
-	}
-	res, err := c.dockerCli.ImagePull(ctx, reference.ImageName, imagePullOptions)
-	if err != nil {
-		return err
-	}
-	defer res.Close()
-	if _, err = ioutil.ReadAll(res); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *Client) ImageInspect(ctx context.Context, tag, digest string) (*dockerTypes.ImageInspect, error) {
-	ref := c.Reference(tag, digest)
-	raw, _, err := c.dockerCli.ImageInspectWithRaw(ctx, ref.ImageName)
-	if err != nil {
-		return nil, err
-	}
-	return &raw, nil
 }

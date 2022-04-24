@@ -4,27 +4,31 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 
-	fanalTypes "github.com/aquasecurity/fanal/types"
-	dockerTypes "github.com/docker/docker/api/types"
+	"github.com/aquasecurity/fanal/types"
+
 	"github.com/lieinsun/registrytool/registry"
 	"github.com/lieinsun/registrytool/scanner"
 )
 
-func (c Client) ListArtifacts(_ context.Context, _ url.Values) ([]registry.Artifact, int, error) {
+func (c *Client) Repository() string {
+	return c.query.repository
+}
+
+func (c *Client) ListArtifacts(_ context.Context, _ url.Values) ([]registry.Artifact, int, error) {
 	return nil, 0, nil
 }
 
-func (c Client) ListTags(ctx context.Context, params url.Values, _ ...string) ([]registry.Tag, int, error) {
+func (c *Client) ListTags(ctx context.Context, params url.Values, _ ...string) ([]registry.Tag, int, error) {
 	if c.account == "" {
 		c.account = c.username
 	}
-	c.url.Path = fmt.Sprintf(ListTagsURL, c.account, c.repository)
-	c.url.RawQuery = params.Encode()
-	req, err := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
+	u := c.url
+	u.Path = fmt.Sprintf(ListTagsURL, c.account, c.repository)
+	u.RawQuery = params.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -57,7 +61,7 @@ func (c Client) ListTags(ctx context.Context, params url.Values, _ ...string) ([
 	return list, tagsResp.Count, nil
 }
 
-func (c Client) ImageDetail(ctx context.Context, tag string) (*registry.Image, error) {
+func (c *Client) ImageDetail(ctx context.Context, tag string) (*registry.Image, error) {
 	c.tag = tag
 	if c.account == "" {
 		c.account = c.username
@@ -70,8 +74,9 @@ func (c Client) ImageDetail(ctx context.Context, tag string) (*registry.Image, e
 		return nil, err
 	}
 
-	c.url.Path = fmt.Sprintf(ImageDetailURL, repoPath, tag)
-	req, err := http.NewRequestWithContext(ctx, "GET", c.url.String(), nil)
+	u := c.url
+	u.Path = fmt.Sprintf(ImageDetailURL, repoPath, tag)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +106,7 @@ func (c Client) ImageDetail(ctx context.Context, tag string) (*registry.Image, e
 	return &i, nil
 }
 
-func (c Client) Reference(tag, digest string) *scanner.Reference {
+func (c *Client) Reference(tag, digest string) *scanner.Reference {
 	if c.account == "" {
 		c.account = c.username
 	}
@@ -114,7 +119,7 @@ func (c Client) Reference(tag, digest string) *scanner.Reference {
 		ref = ref + "@" + digest
 	}
 
-	dockerOption := fanalTypes.DockerOption{
+	dockerOption := types.DockerOption{
 		UserName:      c.username,
 		Password:      c.password,
 		RegistryToken: c.token,
@@ -123,30 +128,4 @@ func (c Client) Reference(tag, digest string) *scanner.Reference {
 		ImageName:    ref,
 		DockerOption: dockerOption,
 	}
-}
-
-func (c Client) ImagePull(ctx context.Context, tag, digest string) error {
-	reference := c.Reference(tag, digest)
-	imagePullOptions := dockerTypes.ImagePullOptions{
-		RegistryAuth: registry.EncodeAuthHeader(c.username, c.password),
-	}
-	res, err := c.dockerCli.ImagePull(ctx, reference.ImageName, imagePullOptions)
-	if err != nil {
-		return err
-	}
-	defer res.Close()
-	if _, err = ioutil.ReadAll(res); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *Client) ImageInspect(ctx context.Context, tag, digest string) (*dockerTypes.ImageInspect, error) {
-	ref := c.Reference(tag, digest)
-	raw, _, err := c.dockerCli.ImageInspectWithRaw(ctx, ref.ImageName)
-	if err != nil {
-		return nil, err
-	}
-	return &raw, nil
 }

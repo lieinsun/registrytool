@@ -10,27 +10,43 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/docker/docker/api/types"
+	dockerTypes "github.com/docker/docker/api/types"
 
 	"github.com/lieinsun/registrytool/registry"
 )
 
+func (c Client) UserName() string {
+	return c.username
+}
+
+func (c Client) Password() string {
+	return c.password
+}
+
+func (c Client) Token() string {
+	return c.token
+}
+
+func (c Client) Host() string {
+	return c.url.Host
+}
+
 func (c *Client) Login(ctx context.Context) (string, error) {
-	data, _ := json.Marshal(types.AuthConfig{
+	data, _ := json.Marshal(dockerTypes.AuthConfig{
 		Username: c.username,
 		Password: c.password,
 	})
 	body := bytes.NewBuffer(data)
 
-	// 不可以用URL.String() 转义字符会导致404
-	u := fmt.Sprintf("%s://%s%s", c.url.Scheme, c.url.Host, LoginURL)
-	req, err := http.NewRequestWithContext(ctx, "POST", u, body)
+	u := c.url
+	u.Path = LoginURL
+	q := url.Values{}
+	q.Add("refresh_token", fmt.Sprintf("%v", true))
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequestWithContext(ctx, "POST", u.String(), body)
 	if err != nil {
 		return "", err
 	}
-	q := url.Values{}
-	q.Add("refresh_token", fmt.Sprintf("%v", true))
-	c.url.RawQuery = q.Encode()
 
 	resp, err := c.doRequest(req)
 	if err != nil {
@@ -47,13 +63,14 @@ func (c *Client) Login(ctx context.Context) (string, error) {
 
 // CheckConn 查询rateLimit判断客户端是否能正常访问
 // https://docs.docker.com/docker-hub/download-rate-limit/
-func (c Client) CheckConn(ctx context.Context) error {
+func (c *Client) CheckConn(ctx context.Context) error {
 	if c.token == "" {
 		return errors.New("unauthorized")
 	}
-	c.url.Host = RateCheckDomain
-	c.url.Path = RateCheckURL
-	req, err := http.NewRequestWithContext(ctx, http.MethodHead, c.url.String(), nil)
+	u := c.url
+	u.Host = RateCheckDomain
+	u.Path = RateCheckURL
+	req, err := http.NewRequestWithContext(ctx, http.MethodHead, u.String(), nil)
 	if err != nil {
 		return err
 	}
@@ -66,10 +83,15 @@ func (c Client) CheckConn(ctx context.Context) error {
 }
 
 // authRateServer 获取检查连接的token
-func (c Client) authRateServer(ctx context.Context) (string, error) {
-	// 不可以用URL.String() 转义字符会导致404
-	u := fmt.Sprintf("%s://%s%s", c.url.Scheme, RateAuthDomain, RateAuthURL)
-	req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
+func (c *Client) authRateServer(ctx context.Context) (string, error) {
+	u := c.url
+	u.Host = RateAuthDomain
+	u.Path = RateAuthURL
+	q := url.Values{}
+	q.Add("service", "registry.docker.io")
+	q.Add("scope", "repository:ratelimitpreview/test:pull")
+	u.RawQuery = q.Encode()
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
 		return "", err
 	}
@@ -89,13 +111,14 @@ func (c Client) authRateServer(ctx context.Context) (string, error) {
 }
 
 // ListProjects dockerhub不能获取组织列表
-func (c Client) ListProjects(_ context.Context, _ url.Values) ([]registry.Project, int, error) {
+func (c *Client) ListProjects(_ context.Context, _ url.Values) ([]registry.Project, int, error) {
 	return nil, 0, nil
 }
 
-func (c Client) ProjectClient(account ...string) registry.ProjectCli {
+func (c *Client) ProjectClient(account ...string) registry.ProjectCli {
 	if len(account) > 0 {
 		c.account = account[0]
 	}
 	return c
 }
+

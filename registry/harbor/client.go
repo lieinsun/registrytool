@@ -6,8 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-
-	"github.com/docker/docker/client"
 )
 
 const (
@@ -26,7 +24,6 @@ type Client struct {
 	password string
 	token    string
 	query
-	dockerCli *client.Client
 }
 
 type query struct {
@@ -36,14 +33,10 @@ type query struct {
 }
 
 func NewClient(opts ...Option) (*Client, error) {
-	var err error
+	//var err error
 	cli := Client{
 		client: new(http.Client),
 		url:    url.URL{},
-	}
-	cli.dockerCli, err = client.NewClientWithOpts(client.FromEnv)
-	if err != nil {
-		return nil, err
 	}
 
 	for _, opt := range opts {

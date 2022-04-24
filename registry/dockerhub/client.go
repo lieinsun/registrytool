@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/docker/docker/client"
-
 	"github.com/docker/distribution/reference"
 )
 
@@ -29,7 +27,7 @@ const (
 	ListTagsURL         = "/v2/repositories/%s/%s/tags/"
 	ImageDetailURL      = "/v2/repositories/%s/tags/%s/"
 
-	RateAuthURL  = "/token?service=registry.docker.io&scope=repository:ratelimitpreview/test:pull"
+	RateAuthURL  = "/token"
 	RateCheckURL = "/v2/ratelimitpreview/test/manifests/latest"
 )
 
@@ -40,7 +38,6 @@ type Client struct {
 	password string
 	token    string
 	query
-	dockerCli *client.Client
 }
 
 type query struct {
@@ -50,17 +47,13 @@ type query struct {
 }
 
 func NewClient(opts ...Option) (*Client, error) {
-	var err error
+	//var err error
 	cli := Client{
 		client: new(http.Client),
 		url: url.URL{
 			Scheme: "https",
 			Host:   RegistryDomain,
 		},
-	}
-	cli.dockerCli, err = client.NewClientWithOpts(client.FromEnv)
-	if err != nil {
-		return nil, err
 	}
 
 	for _, opt := range opts {

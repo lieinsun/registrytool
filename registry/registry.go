@@ -4,13 +4,17 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/docker/docker/api/types"
 	"net/url"
 
 	"github.com/lieinsun/registrytool/scanner"
 )
 
 type Registry interface {
+	UserName() string
+	Password() string
+	Token() string
+	Host() string
+
 	// Login 检验账号密码
 	Login(ctx context.Context) (string, error)
 	// CheckConn 检查客户端连接 不可以使用login频繁检测
@@ -22,13 +26,19 @@ type Registry interface {
 }
 
 type ProjectCli interface {
+	Project() string
+
 	// RepositoryClient 指定镜像名
 	RepositoryClient(repo string) RepositoryCli
 	// ListRepositories 查询project下面的镜像repo列表
 	ListRepositories(ctx context.Context, params url.Values) ([]Repository, int, error)
+
+	Registry
 }
 
 type RepositoryCli interface {
+	Repository() string
+
 	// ListArtifacts harbor查询repo下面的tag列表
 	ListArtifacts(ctx context.Context, params url.Values) ([]Artifact, int, error)
 	// ListTags 查询repo下面的tag列表
@@ -39,8 +49,7 @@ type RepositoryCli interface {
 	// Reference 镜像全称 用于拉取/扫描
 	Reference(tag, digest string) *scanner.Reference
 
-	ImagePull(ctx context.Context, tag, digest string) error
-	ImageInspect(ctx context.Context, tag, digest string) (*types.ImageInspect, error)
+	ProjectCli
 }
 
 func EncodeAuthHeader(username string, password string) string {
