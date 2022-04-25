@@ -65,11 +65,11 @@ func (c *Client) CheckConn(ctx context.Context) error {
 	return c.ping(ctx)
 }
 
-func (c *Client) ProjectClient(project ...string) registry.ProjectCli {
+func (c Client) ProjectClient(project ...string) registry.ProjectCli {
 	if len(project) > 0 {
 		c.project = project[0]
 	}
-	return c
+	return &c
 }
 
 func (c *Client) ListProjects(ctx context.Context, params url.Values) ([]registry.Project, int, error) {

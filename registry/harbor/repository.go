@@ -18,7 +18,7 @@ func (c *Client) Repository() string {
 	return c.query.repository
 }
 
-func (c *Client) ListArtifacts(ctx context.Context, params url.Values) ([]registry.Artifact, int, error) {
+func (c Client) ListArtifacts(ctx context.Context, params url.Values) ([]registry.Artifact, int, error) {
 	u := c.url
 	u.Path = fmt.Sprintf(ListArtifactsURL, c.project, c.repository)
 	u.RawQuery = params.Encode()
@@ -52,7 +52,7 @@ func (c *Client) ListArtifacts(ctx context.Context, params url.Values) ([]regist
 	return list, total, nil
 }
 
-func (c *Client) ListTags(ctx context.Context, params url.Values, reference ...string) ([]registry.Tag, int, error) {
+func (c Client) ListTags(ctx context.Context, params url.Values, reference ...string) ([]registry.Tag, int, error) {
 	if len(reference) == 0 {
 		reference = []string{"latest"}
 	}

@@ -115,10 +115,10 @@ func (c *Client) ListProjects(_ context.Context, _ url.Values) ([]registry.Proje
 	return nil, 0, nil
 }
 
-func (c *Client) ProjectClient(account ...string) registry.ProjectCli {
+func (c Client) ProjectClient(account ...string) registry.ProjectCli {
 	if len(account) > 0 {
 		c.account = account[0]
 	}
-	return c
+	return &c
 }
 

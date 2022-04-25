@@ -17,11 +17,11 @@ func (c *Client) Repository() string {
 	return c.query.repository
 }
 
-func (c *Client) ListArtifacts(_ context.Context, _ url.Values) ([]registry.Artifact, int, error) {
+func (c Client) ListArtifacts(_ context.Context, _ url.Values) ([]registry.Artifact, int, error) {
 	return nil, 0, nil
 }
 
-func (c *Client) ListTags(ctx context.Context, params url.Values, _ ...string) ([]registry.Tag, int, error) {
+func (c Client) ListTags(ctx context.Context, params url.Values, _ ...string) ([]registry.Tag, int, error) {
 	if c.account == "" {
 		c.account = c.username
 	}
