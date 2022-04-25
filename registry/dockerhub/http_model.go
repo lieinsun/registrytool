@@ -62,7 +62,6 @@ type hubImage struct {
 	Status       string    `json:"status,omitempty"`
 }
 
-
 type tagsResponse struct {
 	Count    int         `json:"count"`
 	Next     string      `json:"next,omitempty"`

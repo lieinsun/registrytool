@@ -43,8 +43,18 @@ func (c Client) ListArtifacts(ctx context.Context, params url.Values) ([]registr
 			Os:          a.ExtraAttrs.Os,
 			Size:        a.Size,
 			UpdatedTime: a.PushTime.Unix(),
+			Tags:        make([]registry.Tag, 0),
 		}
 
+		for _, t := range a.Tags {
+			tag := registry.Tag{
+				Name:        t.Name,
+				Digest:      a.Digest,
+				Size:        a.Size,
+				UpdatedTime: t.PushTime.Unix(),
+			}
+			artifact.Tags = append(artifact.Tags, tag)
+		}
 		list = append(list, artifact)
 	}
 
@@ -101,7 +111,7 @@ func (c *Client) ImageDetail(ctx context.Context, tagOrDigest string) (*registry
 	if err != nil {
 		return nil, err
 	}
-	var detailResp imageDetailResp
+	var detailResp imageDetailResponse
 	if err = json.Unmarshal(resp, &detailResp); err != nil {
 		return nil, err
 	}

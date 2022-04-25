@@ -29,6 +29,7 @@ type Artifact struct {
 	Os          string `json:"os"`
 	Size        int    `json:"size"`
 	UpdatedTime int64  `json:"updated_time"`
+	Tags        []Tag  `json:"tags"` // harbor支持查询artifact列表同时拿到内部tag列表
 }
 
 type Tag struct {

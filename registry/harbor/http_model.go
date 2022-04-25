@@ -28,22 +28,22 @@ type repositoriesResponse []struct {
 }
 
 type artifactsResponse []struct {
-	Digest            string    `json:"digest"`
-	ExtraAttrs        extraAttr `json:"extra_attrs"`
-	Icon              string    `json:"icon"`
-	Id                int       `json:"id"`
-	ManifestMediaType string    `json:"manifest_media_type"`
-	MediaType         string    `json:"media_type"`
-	ProjectId         int       `json:"project_id"`
-	PullTime          time.Time `json:"pull_time"`
-	PushTime          time.Time `json:"push_time"`
-	RepositoryId      int       `json:"repository_id"`
-	Size              int       `json:"size"`
-	Type              string    `json:"type"`
+	Digest            string        `json:"digest"`
+	ExtraAttrs        extraAttr     `json:"extra_attrs"`
+	Icon              string        `json:"icon"`
+	Id                int           `json:"id"`
+	ManifestMediaType string        `json:"manifest_media_type"`
+	MediaType         string        `json:"media_type"`
+	ProjectId         int           `json:"project_id"`
+	PullTime          time.Time     `json:"pull_time"`
+	PushTime          time.Time     `json:"push_time"`
+	RepositoryId      int           `json:"repository_id"`
+	Size              int           `json:"size"`
+	Tags              []tagResponse `json:"tags"`
+	Type              string        `json:"type"`
 	//AdditionLinks	struct{}
 	//Labels		[]struct{}
 	//References    struct{}
-	//Tags          []imageDetailTag
 }
 
 type tagsResponse []tagResponse
@@ -59,7 +59,7 @@ type tagResponse struct {
 	Signed       bool      `json:"signed"`
 }
 
-type imageDetailResp struct {
+type imageDetailResponse struct {
 	Digest            string        `json:"digest"`
 	ExtraAttrs        extraAttr     `json:"extra_attrs"`
 	Icon              string        `json:"icon"`
