@@ -15,20 +15,24 @@ import (
 	"github.com/lieinsun/registrytool/registry"
 )
 
-func (c Client) UserName() string {
+func (c *Client) Schema() string {
+	return c.url.Scheme
+}
+
+func (c *Client) Host() string {
+	return c.url.Host
+}
+
+func (c *Client) UserName() string {
 	return c.username
 }
 
-func (c Client) Password() string {
+func (c *Client) Password() string {
 	return c.password
 }
 
-func (c Client) Token() string {
+func (c *Client) Token() string {
 	return c.token
-}
-
-func (c Client) Host() string {
-	return c.url.Host
 }
 
 func (c *Client) Login(ctx context.Context) (string, error) {
@@ -121,4 +125,3 @@ func (c Client) ProjectClient(account ...string) registry.ProjectCli {
 	}
 	return &c
 }
-

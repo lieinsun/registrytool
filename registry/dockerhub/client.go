@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	RegistryDomain  = "hub.docker.com"
+	RegistryDomain = "hub.docker.com"
+
 	RateAuthDomain  = "auth.docker.io"
 	RateCheckDomain = "registry-1.docker.io"
 )
@@ -47,7 +48,6 @@ type query struct {
 }
 
 func NewClient(opts ...Option) (*Client, error) {
-	//var err error
 	cli := Client{
 		client: new(http.Client),
 		url: url.URL{

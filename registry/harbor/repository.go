@@ -146,6 +146,12 @@ func (c *Client) Reference(tag, digest string) *scanner.Reference {
 		Password:      c.password,
 		RegistryToken: c.token,
 	}
+	if c.url.Scheme != "https" {
+		// trivy访问使用http
+		dockerOption.InsecureSkipTLSVerify = true
+		dockerOption.NonSSL = true
+	}
+
 	return &scanner.Reference{
 		ImageName:    ref,
 		DockerOption: dockerOption,

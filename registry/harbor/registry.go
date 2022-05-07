@@ -13,6 +13,14 @@ import (
 	"github.com/lieinsun/registrytool/registry"
 )
 
+func (c *Client) Host() string {
+	return c.url.Host
+}
+
+func (c *Client) Schema() string {
+	return c.url.Scheme
+}
+
 func (c *Client) UserName() string {
 	return c.username
 }
@@ -25,16 +33,11 @@ func (c *Client) Token() string {
 	return c.token
 }
 
-func (c *Client) Host() string {
-	return c.url.Host
-}
-
-
 // Login harbor使用Basic token
 func (c *Client) Login(ctx context.Context) (string, error) {
 	c.token = base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", c.username, c.password)))
-	// 使用ping 检查token是否有效
-	err := c.ping(ctx)
+	// 检查token是否有效
+	err := c.currentUser(ctx)
 	if err != nil {
 		c.token = ""
 		return "", err
@@ -42,8 +45,8 @@ func (c *Client) Login(ctx context.Context) (string, error) {
 	return c.token, nil
 }
 
-// Ping 使用查询当前登录用户的方法验证登录
-func (c *Client) ping(ctx context.Context) error {
+// currentUser 使用查询当前登录用户的方法验证登录
+func (c *Client) currentUser(ctx context.Context) error {
 	u := c.url
 	u.Path = CurrentUserURL
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
@@ -62,14 +65,7 @@ func (c *Client) CheckConn(ctx context.Context) error {
 	if c.token == "" {
 		return errors.New("unauthorized")
 	}
-	return c.ping(ctx)
-}
-
-func (c Client) ProjectClient(project ...string) registry.ProjectCli {
-	if len(project) > 0 {
-		c.project = project[0]
-	}
-	return &c
+	return c.currentUser(ctx)
 }
 
 func (c *Client) ListProjects(ctx context.Context, params url.Values) ([]registry.Project, int, error) {
@@ -105,4 +101,11 @@ func (c *Client) ListProjects(ctx context.Context, params url.Values) ([]registr
 
 	total, _ := strconv.Atoi(header.Get("X-Total-Count"))
 	return list, total, nil
+}
+
+func (c Client) ProjectClient(project ...string) registry.ProjectCli {
+	if len(project) > 0 {
+		c.project = project[0]
+	}
+	return &c
 }

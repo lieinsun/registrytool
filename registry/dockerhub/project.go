@@ -10,7 +10,7 @@ import (
 	"github.com/lieinsun/registrytool/registry"
 )
 
-func (c Client) Project() string {
+func (c *Client) Project() string {
 	return c.query.account
 }
 

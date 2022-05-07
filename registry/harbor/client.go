@@ -33,7 +33,6 @@ type query struct {
 }
 
 func NewClient(opts ...Option) (*Client, error) {
-	//var err error
 	cli := Client{
 		client: new(http.Client),
 		url:    url.URL{},

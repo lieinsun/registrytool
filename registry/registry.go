@@ -10,16 +10,17 @@ import (
 )
 
 type Registry interface {
+	Schema() string
+	Host() string
 	UserName() string
 	Password() string
 	Token() string
-	Host() string
 
 	// Login 检验账号密码
 	Login(ctx context.Context) (string, error)
-	// CheckConn 检查客户端连接 不可以使用login频繁检测
+	// CheckConn 检查客户端连接(仓库是否可访问，登录是否有效) 不可以使用login频繁检测
 	CheckConn(ctx context.Context) error
-	// ProjectClient 指定仓库account或project
+	// ProjectClient 指定仓库account或project(值接收器 实现client并发复用)
 	ProjectClient(accountOrProject ...string) ProjectCli
 	// ListProjects harbor查询项目列表
 	ListProjects(ctx context.Context, params url.Values) ([]Project, int, error)
@@ -28,7 +29,7 @@ type Registry interface {
 type ProjectCli interface {
 	Project() string
 
-	// RepositoryClient 指定镜像名
+	// RepositoryClient 指定镜像名(值接收器 实现client并发复用)
 	RepositoryClient(repo string) RepositoryCli
 	// ListRepositories 查询project下面的镜像repo列表
 	ListRepositories(ctx context.Context, params url.Values) ([]Repository, int, error)
