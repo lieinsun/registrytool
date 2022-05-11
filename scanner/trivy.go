@@ -16,8 +16,6 @@ type Trivy struct {
 	scanner   client.Scanner
 }
 
-type Option func(*Trivy)
-
 func New(url string, opts ...Option) *Trivy {
 	t := Trivy{
 		remoteURL: client.RemoteURL(url),
@@ -32,3 +30,5 @@ func New(url string, opts ...Option) *Trivy {
 	t.cache = remoteCache.NewRemoteCache(string(t.remoteURL), t.headers, bool(t.insecure))
 	return &t
 }
+
+type Option func(*Trivy)
