@@ -131,14 +131,14 @@ func (c *Client) ImageDetail(ctx context.Context, tagOrDigest string) (*registry
 	return &i, nil
 }
 
-func (c *Client) Reference(tag, digest string) *scanner.Reference {
-	ref := fmt.Sprintf("%s/%s/%s", c.url.Host, c.project, c.repository)
+func (c *Client) Reference(tag, digest string) scanner.Reference {
+	repoTag := fmt.Sprintf("%s/%s/%s", c.url.Host, c.project, c.repository)
 	c.tag = tag
 	if c.tag != "" {
-		ref = ref + ":" + c.tag
+		repoTag = repoTag + ":" + c.tag
 	}
 	if digest != "" {
-		ref = ref + "@" + digest
+		repoTag = repoTag + "@" + digest
 	}
 
 	dockerOption := fanalTypes.DockerOption{
@@ -152,8 +152,5 @@ func (c *Client) Reference(tag, digest string) *scanner.Reference {
 		dockerOption.NonSSL = true
 	}
 
-	return &scanner.Reference{
-		ImageName:    ref,
-		DockerOption: dockerOption,
-	}
+	return scanner.NewRemoteReference(repoTag, dockerOption)
 }

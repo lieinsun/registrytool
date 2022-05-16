@@ -167,7 +167,7 @@ func (c *Client) ImageDetail(ctx context.Context, tag string) (*registry.Image, 
 	return &i, nil
 }
 
-func (c *Client) Reference(tag, digest string) *scanner.Reference {
+func (c *Client) Reference(tag, digest string) scanner.Reference {
 	if c.account == "" {
 		c.account = c.username
 	}
@@ -175,9 +175,9 @@ func (c *Client) Reference(tag, digest string) *scanner.Reference {
 	if c.tag == "" {
 		c.tag = "latest"
 	}
-	ref := fmt.Sprintf("%s/%s:%s", c.account, c.repository, c.tag)
+	repoTag := fmt.Sprintf("%s/%s:%s", c.account, c.repository, c.tag)
 	if digest != "" {
-		ref = ref + "@" + digest
+		repoTag = repoTag + "@" + digest
 	}
 
 	dockerOption := types.DockerOption{
@@ -185,8 +185,5 @@ func (c *Client) Reference(tag, digest string) *scanner.Reference {
 		Password:      c.password,
 		RegistryToken: c.token,
 	}
-	return &scanner.Reference{
-		ImageName:    ref,
-		DockerOption: dockerOption,
-	}
+	return scanner.NewRemoteReference(repoTag, dockerOption)
 }
