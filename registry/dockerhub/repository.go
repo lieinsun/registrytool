@@ -167,7 +167,7 @@ func (c *Client) ImageDetail(ctx context.Context, tag string) (*registry.Image, 
 	return &i, nil
 }
 
-func (c *Client) Reference(tag, digest string) scanner.Reference {
+func (c *Client) Reference(tag, digest string) *scanner.RemoteReference {
 	if c.account == "" {
 		c.account = c.username
 	}

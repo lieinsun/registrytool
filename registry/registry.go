@@ -48,7 +48,7 @@ type RepositoryCli interface {
 	// ImageDetail 指定tag查询镜像详情
 	ImageDetail(ctx context.Context, tag string) (*Image, error)
 	// Reference 镜像全称 用于拉取/扫描
-	Reference(tag, digest string) scanner.Reference
+	Reference(tag, digest string) *scanner.RemoteReference
 
 	ProjectCli
 }

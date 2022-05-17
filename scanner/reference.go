@@ -14,7 +14,7 @@ type Reference interface {
 	ImageName() string
 }
 
-type remoteReference struct {
+type RemoteReference struct {
 	// repoTag 扫描所需要的镜像全称 digest为可选字段
 	// dockerhub	{username}/{repositoryName}:{tagName}@{digest}
 	//				datadog/agent:latest@sha256:775b3a472c0581c4bceaeafabab78c104cc8a5ce806e6ce0634aa4fcf11e41ab
@@ -24,14 +24,14 @@ type remoteReference struct {
 	dockerOption types.DockerOption
 }
 
-func NewRemoteReference(repoTag string, dockerOption types.DockerOption) *remoteReference {
-	return &remoteReference{
+func NewRemoteReference(repoTag string, dockerOption types.DockerOption) *RemoteReference {
+	return &RemoteReference{
 		repoTag:      repoTag,
 		dockerOption: dockerOption,
 	}
 }
 
-func (r *remoteReference) NewFanalImage(ctx context.Context) (types.Image, func(), error) {
+func (r *RemoteReference) NewFanalImage(ctx context.Context) (types.Image, func(), error) {
 	// TODO 考虑替换NewDockerImage 只处理remote逻辑
 	img, cleanup, err := image.NewDockerImage(ctx, r.repoTag, r.dockerOption)
 	if err != nil {
@@ -41,23 +41,22 @@ func (r *remoteReference) NewFanalImage(ctx context.Context) (types.Image, func(
 	return img, cleanup, nil
 }
 
-func (r *remoteReference) ImageName() string {
+func (r *RemoteReference) ImageName() string {
 	return r.repoTag
 }
 
-type archiveReference struct {
+type ArchiveReference struct {
 	// fileName 镜像压缩包/导出文件
 	// 本地压缩包		{path}/{fileName}
 	//				/tmp/image/775b3a472c0581c4bceaeafabab78c104cc8a5ce806e6ce0634aa4fcf11e41ab.tar
 	fileName string
 }
 
-func NewArchiveReference(fileName string) *archiveReference {
-	return &archiveReference{fileName: fileName}
+func NewArchiveReference(fileName string) *ArchiveReference {
+	return &ArchiveReference{fileName: fileName}
 }
 
-func (r *archiveReference) NewFanalImage(_ context.Context) (types.Image, func(), error) {
-	// TODO 考虑替换NewArchiveImage fanal未处理file.Close()
+func (r *ArchiveReference) NewFanalImage(_ context.Context) (types.Image, func(), error) {
 	img, err := image.NewArchiveImage(r.fileName)
 	if err != nil {
 		return nil, nil, fmt.Errorf("NewArchiveImage err: %w", err)
@@ -68,6 +67,6 @@ func (r *archiveReference) NewFanalImage(_ context.Context) (types.Image, func()
 	}, nil
 }
 
-func (r *archiveReference) ImageName() string {
+func (r *ArchiveReference) ImageName() string {
 	return r.fileName
 }
