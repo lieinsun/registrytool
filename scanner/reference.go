@@ -31,6 +31,10 @@ func NewRemoteReference(repoTag string, dockerOption types.DockerOption) *Remote
 	}
 }
 
+func (r *RemoteReference) GetDockerOption() types.DockerOption {
+	return r.dockerOption
+}
+
 func (r *RemoteReference) NewFanalImage(ctx context.Context) (types.Image, func(), error) {
 	// TODO 考虑替换NewDockerImage 只处理remote逻辑
 	img, cleanup, err := image.NewDockerImage(ctx, r.repoTag, r.dockerOption)
