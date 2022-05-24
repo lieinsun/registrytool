@@ -23,7 +23,7 @@ func (c *Client) ListArtifacts(ctx context.Context, params url.Values) ([]regist
 		c.account = c.username
 	}
 	u := c.url
-	u.Path = fmt.Sprintf(ListTagsURL, c.account, c.repository)
+	u.Path = fmt.Sprintf(ListTagsURL, c.account, url.PathEscape(c.repository))
 	u.RawQuery = params.Encode()
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {

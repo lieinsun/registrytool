@@ -20,7 +20,7 @@ func (c *Client) Repository() string {
 
 func (c Client) ListArtifacts(ctx context.Context, params url.Values) ([]registry.Artifact, int, error) {
 	u := c.url
-	u.Path = fmt.Sprintf(ListArtifactsURL, c.project, c.repository)
+	u.Path = fmt.Sprintf(ListArtifactsURL, c.project, url.PathEscape(c.repository))
 	u.RawQuery = params.Encode()
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
