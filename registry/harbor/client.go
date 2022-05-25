@@ -30,6 +30,7 @@ type query struct {
 	project    string
 	repository string
 	tag        string
+	digest     string
 }
 
 func NewClient(opts ...Option) (*Client, error) {

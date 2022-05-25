@@ -168,14 +168,18 @@ func (c *Client) ImageDetail(ctx context.Context, tag string) (*registry.Image, 
 }
 
 func (c *Client) Reference(tag, digest string) *scanner.RemoteReference {
+	if tag == "" && digest == "" {
+		tag = "latest"
+	}
+	c.tag, c.digest = tag, digest
 	if c.account == "" {
 		c.account = c.username
 	}
-	c.tag = tag
-	if c.tag == "" {
-		c.tag = "latest"
+	repoTag := fmt.Sprintf("%s/%s", c.account, c.repository)
+
+	if c.tag != "" {
+		repoTag = repoTag + ":" + c.tag
 	}
-	repoTag := fmt.Sprintf("%s/%s:%s", c.account, c.repository, c.tag)
 	if digest != "" {
 		repoTag = repoTag + "@" + digest
 	}
