@@ -29,6 +29,7 @@ type Client struct {
 type query struct {
 	project    string
 	repository string
+	digest     string
 	tag        string
 }
 

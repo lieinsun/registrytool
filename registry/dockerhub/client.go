@@ -44,6 +44,7 @@ type Client struct {
 type query struct {
 	account    string
 	repository string
+	digest     string
 	tag        string
 }
 

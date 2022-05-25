@@ -132,8 +132,9 @@ func (c *Client) ImageDetail(ctx context.Context, tagOrDigest string) (*registry
 }
 
 func (c *Client) Reference(tag, digest string) *scanner.RemoteReference {
+	c.digest, c.tag = tag, digest
 	repoTag := fmt.Sprintf("%s/%s/%s", c.url.Host, c.project, c.repository)
-	c.tag = tag
+
 	if c.tag != "" {
 		repoTag = repoTag + ":" + c.tag
 	}
