@@ -15,9 +15,6 @@ func (c *Client) Project() string {
 }
 
 func (c *Client) ListRepositories(ctx context.Context, params url.Values) ([]registry.Repository, int, error) {
-	if c.account == "" {
-		c.account = c.username
-	}
 	u := c.url
 	u.Path = fmt.Sprintf(ListRepositoriesURL, c.account)
 	u.RawQuery = params.Encode()

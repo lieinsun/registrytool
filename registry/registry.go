@@ -2,8 +2,6 @@ package registry
 
 import (
 	"context"
-	"encoding/base64"
-	"fmt"
 	"net/url"
 
 	"github.com/lieinsun/registrytool/scanner"
@@ -43,19 +41,17 @@ type RepositoryCli interface {
 	// ListArtifacts harbor查询repo下面的tag列表
 	ListArtifacts(ctx context.Context, params url.Values) ([]Artifact, int, error)
 	// ListTags 查询repo下面的tag列表
-	// reference(tag或digest) dockerhub查询不需要指定
-	ListTags(ctx context.Context, params url.Values, reference ...string) ([]Tag, int, error)
-	// ImageDetail 指定tag查询镜像详情
-	ImageDetail(ctx context.Context, tag string) (*Image, error)
+	// reference(tagName或digest)
+	// 	harbor: 必须指定tagName或digest
+	// 	dockerhub: api无法指定查询 只能返回repo下所有tag 通过筛选结果集处理
+	ListTags(ctx context.Context, reference string, params url.Values) ([]Tag, int, error)
+	// ImageDetail 查询镜像详情
+	// reference(tagName或digest)
+	// 	harbor: 使用tagName或digest
+	// 	dockerhub: 只能使用tagName
+	ImageDetail(ctx context.Context, reference string) (*Image, error)
 	// Reference 镜像全称 用于拉取/扫描
 	Reference(tag, digest string) *scanner.RemoteReference
 
 	ProjectCli
-}
-
-func EncodeAuthHeader(username string, password string) string {
-	src := fmt.Sprintf("{ \"username\": \"%s\", \"password\": \"%s\" }", username, password)
-	encoded := base64.StdEncoding.EncodeToString([]byte(src))
-
-	return encoded
 }

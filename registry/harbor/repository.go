@@ -62,12 +62,12 @@ func (c Client) ListArtifacts(ctx context.Context, params url.Values) ([]registr
 	return list, total, nil
 }
 
-func (c Client) ListTags(ctx context.Context, params url.Values, reference ...string) ([]registry.Tag, int, error) {
-	if len(reference) == 0 {
-		reference = []string{"latest"}
+func (c Client) ListTags(ctx context.Context, reference string, params url.Values) ([]registry.Tag, int, error) {
+	if reference == "" {
+		reference = "latest"
 	}
 	u := c.url
-	u.Path = fmt.Sprintf(ListTagsURL, c.project, c.repository, reference[0])
+	u.Path = fmt.Sprintf(ListTagsURL, c.project, c.repository, reference)
 	u.RawQuery = params.Encode()
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {

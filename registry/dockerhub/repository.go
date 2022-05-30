@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/aquasecurity/fanal/types"
 
@@ -19,9 +20,6 @@ func (c *Client) Repository() string {
 
 // ListArtifacts tags按照digest分组
 func (c *Client) ListArtifacts(ctx context.Context, params url.Values) ([]registry.Artifact, int, error) {
-	if c.account == "" {
-		c.account = c.username
-	}
 	u := c.url
 	u.Path = fmt.Sprintf(ListTagsURL, c.account, url.PathEscape(c.repository))
 	u.RawQuery = params.Encode()
@@ -82,10 +80,7 @@ func (c *Client) ListArtifacts(ctx context.Context, params url.Values) ([]regist
 	return artifacts, len(artifacts), nil
 }
 
-func (c Client) ListTags(ctx context.Context, params url.Values, _ ...string) ([]registry.Tag, int, error) {
-	if c.account == "" {
-		c.account = c.username
-	}
+func (c Client) ListTags(ctx context.Context, reference string, params url.Values) ([]registry.Tag, int, error) {
 	u := c.url
 	u.Path = fmt.Sprintf(ListTagsURL, c.account, c.repository)
 	u.RawQuery = params.Encode()
@@ -103,6 +98,16 @@ func (c Client) ListTags(ctx context.Context, params url.Values, _ ...string) ([
 		return nil, 0, err
 	}
 
+	// 过滤不匹配的tag数据
+	if reference != "" && !strings.HasPrefix(reference, "sha256:") {
+		for i := range tagsResp.Results {
+			if tagsResp.Results[i].Name == reference {
+				reference = tagsResp.Results[i].Images[0].Digest
+				break
+			}
+		}
+	}
+
 	var list []registry.Tag
 	if tagsCount := len(tagsResp.Results); tagsCount > 0 {
 		list = make([]registry.Tag, 0, tagsCount)
@@ -115,6 +120,11 @@ func (c Client) ListTags(ctx context.Context, params url.Values, _ ...string) ([
 			if len(result.Images) > 0 {
 				tag.Digest = result.Images[0].Digest
 			}
+
+			if reference != "" && tag.Digest != reference {
+				tagsResp.Count--
+				continue
+			}
 			list = append(list, tag)
 		}
 	}
@@ -123,13 +133,10 @@ func (c Client) ListTags(ctx context.Context, params url.Values, _ ...string) ([
 }
 
 func (c *Client) ImageDetail(ctx context.Context, tag string) (*registry.Image, error) {
-	c.tag = tag
-	if c.account == "" {
-		c.account = c.username
-	}
 	if tag == "" {
 		tag = "latest"
 	}
+	c.tag = tag
 	repoPath, err := referencePath(c.account, c.repository)
 	if err != nil {
 		return nil, err
@@ -172,9 +179,6 @@ func (c *Client) Reference(tag, digest string) *scanner.RemoteReference {
 		tag = "latest"
 	}
 	c.tag, c.digest = tag, digest
-	if c.account == "" {
-		c.account = c.username
-	}
 	repoTag := fmt.Sprintf("%s/%s", c.account, c.repository)
 
 	if c.tag != "" {

@@ -122,6 +122,8 @@ func (c *Client) ListProjects(_ context.Context, _ url.Values) ([]registry.Proje
 func (c Client) ProjectClient(account ...string) registry.ProjectCli {
 	if len(account) > 0 {
 		c.account = account[0]
+	} else {
+		c.account = c.username
 	}
 	return &c
 }
